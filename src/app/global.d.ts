@@ -1,8 +1,8 @@
 declare global {
-  type Payload = {
-    username: string;  
-    expiresAt: number; 
+  interface Request {
+    user?: Payload,
+    file?: any,
   };
 }
 
-export {};
+export { };
