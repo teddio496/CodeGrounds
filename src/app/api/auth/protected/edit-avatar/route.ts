@@ -1,48 +1,44 @@
-// pages/api/upload.ts
+// ref: https://github.com/prisma/prisma/discussions/11795#discussioncomment-2171899
+
+import { NextResponse } from "next/server";
 import { prisma } from "@/utils/db";
-import { JWTPayload } from "jose";
-import path from "path";
 
-const multer = require("multer");
+export async function POST(req: Request) {
+  try {
+    const formData = await req.formData();
+    console.log(Array.from(formData.entries())); // Log the formData entries
+    const file = formData.get("file") as File;
+    const username = formData.get("username") as string;
+    console.log(username);
 
-// Configure multer to store uploaded files in the 'uploads/' directory
-const upload = multer({ dest: "uploads/" });
+    if (!file) {
+      return NextResponse.json({ error: "File not provided" }, { status: 400 });
+    }
 
-// Create a middleware to handle file uploads
-const uploadMiddleware = upload.single("image");
+    const base64String = await fileToBase64(file);
 
-// API Route Handler
-export function protectedHandler(req: Request) {
-  if (req.method === "PUT") {
-    uploadMiddleware(req, async (err: any) => {
-      if (err) {
-        return Response.json({
-          error: "something went wrong with avatar update",
-        });
-      }
-      if (!req.file) {
-        return Response.json({ error: "No file uploaded" });
-      }
-
-      const { username } = req.user as JWTPayload; // Get user ID from request body
-
-      try {
-        // Save the image URL or path
-        const imageUrl = path.join("uploads", req.file.filename); // You might want to store it in a different place (e.g., cloud storage)
-
-        // Update user in the database
-        const updatedUser = await prisma.user.update({
-          where: { username: username },
-          data: { avatar: imageUrl },
-        });
-
-        Response.json(updatedUser);
-      } catch (error) {
-        console.error(error);
-        Response.json({
-          error: "An error occurred while uploading the image",
-        });
-      }
+    await prisma.user.update({
+      where: { username: username },
+      data: { avatar: base64String },
     });
+
+    return NextResponse.json({ success: "updated avatar" });
   }
+  catch (e) {
+    console.error(e);
+    return NextResponse.json(
+      { error: "Failed to upload file" },
+      { status: 500 }
+    );
+  }
+};
+
+async function fileToBase64(file: File): Promise<string> {
+  const reader = new FileReader();
+
+  return new Promise((resolve, reject) => {
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
 }

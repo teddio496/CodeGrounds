@@ -12,10 +12,11 @@ export async function middleware(req: NextRequest) {
   }
   const token = authHeader.split(' ')[1];
   // console.log(authHeader.split(' '));
-  // console.log(token);
+  // console.log("THIS IS THE TOKEN: " + token);
   try {
-    jwtVerify(token, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
-    // console.log("REACHED");
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
+    console.log(payload);
+    console.log("REACHED");
     return NextResponse.next();
   }
   catch (e) {
