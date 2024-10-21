@@ -2,33 +2,26 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/utils/db";
-import path from "path";
-import fs from "fs";
-
-const UPLOAD_DIR = path.resolve(process.cwd(), "public/uploads");
+import * as jwt from "jsonwebtoken";
 
 export async function POST(req: Request) {
   try {
-    const formData = await req.formData();
-    const body = Object.fromEntries(formData);
-    const file = (body.file as File) || null;
-
-    if (file) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      if (!fs.existsSync(UPLOAD_DIR)) {
-        fs.mkdirSync(UPLOAD_DIR);
+    const { file } = await req.json();
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return NextResponse.json({ message: "authorization header missing" });
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET as any);
+    const { username } = decoded as jwt.JwtPayload;
+    const updatedUser = await prisma.user.update({
+      where: { username: username },
+      data: {
+        avatar: file,
       }
-
-      const filePath = path.resolve(UPLOAD_DIR, (body.file as File).name);
-      fs.writeFileSync(filePath, buffer);
-
-      const fileUrl = `/uploads/${(body.file as File).name}`;
-
-      return NextResponse.json({ success: "updated avatar", fileUrl });
-    }
-    else {
-      return NextResponse.json({ error: "file doesn't exist" });
-    }
+    });
+    // console.log(updatedUser);
+    return NextResponse.json({ updatedUser: updatedUser, success: true });
   }
   catch (e) {
     console.error(e);
@@ -38,12 +31,3 @@ export async function POST(req: Request) {
     );
   }
 };
-
-// async function fileToBase64(file: File): Promise<string> {
-//   const reader = new FileReader();
-//   return new Promise((resolve, reject) => {
-//     reader.onload = () => resolve(reader.result as string);
-//     reader.onerror = (error) => reject(error);
-//     reader.readAsDataURL(file);
-//   });
-// }

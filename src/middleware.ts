@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 export async function middleware(req: NextRequest) {
-  // console.log("REACHED");
+  console.log("REACHED");
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
     // can also redirect using NextResponse.redirect()
@@ -15,7 +15,7 @@ export async function middleware(req: NextRequest) {
   // console.log("THIS IS THE TOKEN: " + token);
   try {
     const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
-    console.log(payload);
+    console.log("from middleware:", payload);
     console.log("REACHED");
     return NextResponse.next();
   }
