@@ -2,27 +2,33 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/utils/db";
+import path from "path";
+import fs from "fs";
+
+const UPLOAD_DIR = path.resolve(process.cwd(), "public/uploads");
 
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    console.log(Array.from(formData.entries())); // Log the formData entries
-    const file = formData.get("file") as File;
-    const username = formData.get("username") as string;
-    console.log(username);
+    const body = Object.fromEntries(formData);
+    const file = (body.file as File) || null;
 
-    if (!file) {
-      return NextResponse.json({ error: "File not provided" }, { status: 400 });
+    if (file) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      if (!fs.existsSync(UPLOAD_DIR)) {
+        fs.mkdirSync(UPLOAD_DIR);
+      }
+
+      const filePath = path.resolve(UPLOAD_DIR, (body.file as File).name);
+      fs.writeFileSync(filePath, buffer);
+
+      const fileUrl = `/uploads/${(body.file as File).name}`;
+
+      return NextResponse.json({ success: "updated avatar", fileUrl });
     }
-
-    const base64String = await fileToBase64(file);
-
-    await prisma.user.update({
-      where: { username: username },
-      data: { avatar: base64String },
-    });
-
-    return NextResponse.json({ success: "updated avatar" });
+    else {
+      return NextResponse.json({ error: "file doesn't exist" });
+    }
   }
   catch (e) {
     console.error(e);
@@ -33,12 +39,11 @@ export async function POST(req: Request) {
   }
 };
 
-async function fileToBase64(file: File): Promise<string> {
-  const reader = new FileReader();
-
-  return new Promise((resolve, reject) => {
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-    reader.readAsDataURL(file);
-  });
-}
+// async function fileToBase64(file: File): Promise<string> {
+//   const reader = new FileReader();
+//   return new Promise((resolve, reject) => {
+//     reader.onload = () => resolve(reader.result as string);
+//     reader.onerror = (error) => reject(error);
+//     reader.readAsDataURL(file);
+//   });
+// }
