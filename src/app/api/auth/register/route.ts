@@ -1,6 +1,5 @@
-import { prisma } from "@/utils/db";
-
-const bcrypt = require("bcrypt");
+import { prisma } from "@/utils/prismaClient";
+import * as bcrypt from "bcrypt";
 
 export async function POST(req: Request) {
   const { username, password } = await req.json();

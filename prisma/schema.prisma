@@ -14,23 +14,34 @@ datasource db {
 }
 
 model User {
-  username     String        @unique
-  password     String
-  firstName    String        @default("")
-  lastName     String        @default("")
-  avatar       String        @default("")
-  phoneNumber  String        @default("")
-  role         String        @default("User")
-  createdAt    DateTime      @default(now())
-  CodeTemplate CodeTemplate?
+  username      String         @unique
+  password      String
+  firstName     String         @default("")
+  lastName      String         @default("")
+  avatar        String         @default("")
+  phoneNumber   String         @default("")
+  role          String         @default("User")
+  createdAt     DateTime       @default(now())
+  codeTemplates CodeTemplate[]
 }
 
 model CodeTemplate {
-  username    String  @unique
-  code        String  @default("")
   title       String  @unique
+  username    String  @default("")
+  code        String  @default("")
   explanation String  @default("")
-  tag         String  @default("")
   public      Boolean @default(false)
-  user        User    @relation(fields: [username], references: [username])
+  forkedFrom  String?
+  tags Tag[]
+
+  user User  @relation(fields: [username], references: [username])
+}
+
+model Tag {
+  title String @unique // **title of the template
+  tag   String @default("")
+
+  codeTemplate CodeTemplate @relation(fields: [title], references: [title])
+
+  @@unique([tag, title]) // same tag cannot appear more than once for the same CodeTemplate
 }
