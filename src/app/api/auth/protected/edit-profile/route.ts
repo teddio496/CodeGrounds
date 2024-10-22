@@ -1,10 +1,8 @@
-import { prisma } from "@/utils/db";
-import { syncBuiltinESMExports } from "module";
+import { prisma } from "@/utils/prismaClient";
 
 export async function PUT(req: Request) {
-  const { username, newFirstName, newLastName, newPhoneNumber } = await req.json();
-  console.log(req);
-  console.log(username, newFirstName, newLastName, newPhoneNumber);
+  const { newFirstName, newLastName, newPhoneNumber } = await req.json();
+  const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
   try {
     const user = await prisma.user.findUnique({
       where: { username: username }
@@ -22,7 +20,7 @@ export async function PUT(req: Request) {
         phoneNumber: newPhoneNumber ?? user.phoneNumber,
       }
     });
-    return Response.json({ updatedUser: updatedUser, success: true });
+    return Response.json({ updatedUser: updatedUser, status: 200 });
   }
   catch (e) {
     console.log(e);

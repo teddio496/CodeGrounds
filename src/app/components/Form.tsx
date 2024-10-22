@@ -3,10 +3,11 @@
 import React, { useEffect, useState } from "react";
 
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlZGR5IiwiZXhwaXJlc0F0IjoxNzI5NTQ1MTU2LCJpYXQiOjE3Mjk1NDQyNTYsImV4cCI6MTcyOTU2MjI1Nn0.WHm_87bMUv19ZqcC-l2WD-Jtjn4D9Uyebf9tlgK-TWU";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlZGR5IiwiZXhwaXJlc0F0IjoxNzI5NjI0NDI2LCJpYXQiOjE3Mjk2MjM1MjYsImV4cCI6MTcyOTY0MTUyNn0.notmLNCLOu0kVS3Gc8kzrV9r-EF0SaF7XpUASZFFgF8";
 
 export const Form = () => {
   const [base64str, setBase64str] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
 
   useEffect(() => {
     async function editAvatar() {
@@ -22,9 +23,10 @@ export const Form = () => {
           }
         });
         const result = await response.json();
-        // console.log(result);
-        if (result.success) {
+        console.log(result);
+        if (result.status === 200) {
           alert("Upload successful");
+          setAvatarUrl(base64str as string);
         } else {
           alert("Upload failed: " + result.error);
         }
@@ -50,18 +52,16 @@ export const Form = () => {
             const reader = new FileReader();
             reader.onload = () => {
               const result = reader.result as string;
-              setBase64str(result); 
+              setBase64str(result);
             };
             reader.readAsDataURL(file);
           }
-          console.log(base64str);
-          console.log(1);
         }}
       />
       <div>
         <h3>Uploaded Image:</h3>
         <img
-          src={base64str as string ?? ""}
+          src={avatarUrl as string}
           alt="Uploaded Avatar"
           style={{ maxWidth: "200px", maxHeight: "200px" }}
         />

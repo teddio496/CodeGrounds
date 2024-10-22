@@ -1,7 +1,6 @@
-import { prisma } from "@/utils/db";
-
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+import { prisma } from "@/utils/prismaClient";
+import * as jwt from "jsonwebtoken";
+import * as bcrypt from "bcrypt";
 
 export async function POST(req: Request) {
   const { username, password } = await req.json();
@@ -24,12 +23,12 @@ export async function POST(req: Request) {
     };
     const accessToken = jwt.sign(
       payload,
-      process.env.ACCESS_TOKEN_SECRET,
+      process.env.ACCESS_TOKEN_SECRET as string,
       { expiresIn: "5h" }
     );
     const refreshToken = jwt.sign(
       payload,
-      process.env.REFRESH_TOKEN_SECRET,
+      process.env.REFRESH_TOKEN_SECRET as string,
       { expiresIn: "5h" }
     );
     return Response.json({ accessToken: accessToken, refreshToken: refreshToken });
