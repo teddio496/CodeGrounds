@@ -1,4 +1,5 @@
 import { prisma } from "@/utils/db";
+import { syncBuiltinESMExports } from "module";
 
 export async function PUT(req: Request) {
   const { username, newFirstName, newLastName, newPhoneNumber } = await req.json();
@@ -21,7 +22,7 @@ export async function PUT(req: Request) {
         phoneNumber: newPhoneNumber ?? user.phoneNumber,
       }
     });
-    return Response.json(updatedUser);
+    return Response.json({ updatedUser: updatedUser, success: true });
   }
   catch (e) {
     console.log(e);

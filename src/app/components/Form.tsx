@@ -44,17 +44,14 @@ export const Form = () => {
         type="file"
         name="file"
         onChange={async (e) => {
-          const file = e.target.files?.[0]; // Get the selected file
+          const file = e.target.files?.[0];
           if (file) {
+            // convert to base 64
             const reader = new FileReader();
-
-            // When file is successfully read as Data URL
             reader.onload = () => {
               const result = reader.result as string;
-              setBase64str(result); // Set the Base64 string
+              setBase64str(result); 
             };
-
-            // Read file as Data URL (Base64)
             reader.readAsDataURL(file);
           }
           console.log(base64str);

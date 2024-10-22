@@ -14,11 +14,23 @@ datasource db {
 }
 
 model User {
-  username    String   @unique
-  password    String
-  firstName   String   @default("")
-  lastName    String   @default("")
-  avatar      String   @default("")
-  phoneNumber String   @default("")
-  createdAt   DateTime @default(now())
+  username     String        @unique
+  password     String
+  firstName    String        @default("")
+  lastName     String        @default("")
+  avatar       String        @default("")
+  phoneNumber  String        @default("")
+  role         String        @default("User")
+  createdAt    DateTime      @default(now())
+  CodeTemplate CodeTemplate?
+}
+
+model CodeTemplate {
+  username    String  @unique
+  code        String  @default("")
+  title       String  @unique
+  explanation String  @default("")
+  tag         String  @default("")
+  public      Boolean @default(false)
+  user        User    @relation(fields: [username], references: [username])
 }

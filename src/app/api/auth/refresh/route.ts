@@ -1,20 +1,17 @@
-import { JWTPayload } from "jose";
+import * as jwt from "jsonwebtoken";
 
-const jwt = require("jsonwebtoken");
-
-const verifyRefreshToken = (token: string) => {
+const verifyRefreshToken = (token: string): jwt.JwtPayload | null => {
   const secretKey = process.env.REFRESH_TOKEN_SECRET || "defaultRefreshSecret";
   try {
-    return jwt.verify(token, secretKey) as JWTPayload;
+    return jwt.verify(token, secretKey) as jwt.JwtPayload;
   } catch (error) {
     return null;
   }
 };
 
-const generateAccessToken = (user: JWTPayload) => {
+const generateAccessToken = (user: jwt.JwtPayload) => {
   const secretKey = process.env.ACCESS_TOKEN_SECRET || "defaultSecret";
-  const expiresIn = "15m";
-  return jwt.sign({ username: user.username }, secretKey, { expiresIn });
+  return jwt.sign({ username: user.username }, secretKey, { expiresIn: "30m" });
 };
 
 export async function POST(req: Request) {
