@@ -45,3 +45,27 @@ model Tag {
 
   @@unique([tag, title]) // same tag cannot appear more than once for the same CodeTemplate
 }
+
+model BlogPost {
+  b_id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  tag         String
+  content     String
+  author      User     @relation(fields: [authorId], references: [username])
+  upvotes     Int      @default(0)
+  downvotes   Int      @default(0)
+  createdAt   DateTime @default(now())
+  comments    Comment[]
+}
+
+model Comment {
+  c_id          Int      @id @default(autoincrement())
+  content     String
+  postId      Int
+  post        BlogPost @relation(fields: [postId], references: [b_d])
+  parentId    Int?
+  parent      Comment? @relation("CommentToComment", fields: [parentId], references: [c_id])
+  children    Comment[] @relation("CommentToComment")
+  createdAt   DateTime @default(now())
+}
