@@ -23,6 +23,7 @@ model User {
   role          String         @default("User")
   createdAt     DateTime       @default(now())
   codeTemplates CodeTemplate[]
+  blogPosts     BlogPost[]
 }
 
 model CodeTemplate {
@@ -32,9 +33,9 @@ model CodeTemplate {
   explanation String  @default("")
   public      Boolean @default(false)
   forkedFrom  String?
-  tags Tag[]
+  tags        Tag[]
 
-  user User  @relation(fields: [username], references: [username])
+  user User @relation(fields: [username], references: [username])
 }
 
 model Tag {
@@ -44,4 +45,29 @@ model Tag {
   codeTemplate CodeTemplate @relation(fields: [title], references: [title])
 
   @@unique([tag, title]) // same tag cannot appear more than once for the same CodeTemplate
+}
+
+model BlogPost {
+  b_id        Int       @id @default(autoincrement())
+  title       String
+  description String
+  tag         String
+  content     String
+  authorName  String
+  upvotes     Int       @default(0)
+  downvotes   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  author      User      @relation(fields: [authorName], references: [username])
+  comments    Comment[]
+}
+
+model Comment {
+  c_id      Int       @id @default(autoincrement())
+  content   String
+  postId    Int
+  post      BlogPost  @relation(fields: [postId], references: [b_id])
+  parentId  Int?
+  parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [c_id])
+  children  Comment[] @relation("CommentToComment")
+  createdAt DateTime  @default(now())
 }
