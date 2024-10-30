@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { JWTExpired } from "jose/errors";
+import getRefreshToken from "./app/api/auth/refresh/route";
 // note: cannot use getPayload from utils/payload because it uses jsonwebtoken
 
 export async function middleware(req: NextRequest) {
@@ -14,15 +16,33 @@ export async function middleware(req: NextRequest) {
   // }
   // const token = authHeader.split(" ")[1];
   // console.log("THIS IS THE TOKEN: " + token);
-  const token = req.cookies.get("accessToken")?.value;
+  let token = req.cookies.get("accessToken")?.value;
+  let payload;
   console.log("THIS IS THE TOKEN: ", token);
   try {
-    const { payload } = await jwtVerify(token as any, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
-
-    console.log("payload received from middleware:", payload);
-    console.log("REACHED PAST VERIFY TOKEN");
-
+    ({ payload } = await jwtVerify(token as string, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET)));
+  }
+  catch (e) {
+    if (e instanceof JWTExpired) {
+      console.log("TOKEN WAS EXPIRED, REFRESHING...");
+      const response = await getRefreshToken(req);
+      const { accessToken } = await response.json();
+      if (response.ok) {
+        token = accessToken;
+      } else {
+        return NextResponse.json({ error: "refresh token failed" }, { status: 500 });
+      }
+      // if reached here then token was successfully refreshed, jwtVerify() should work so no more error handling
+      payload = await jwtVerify(token as string, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
+    }
+    else {
+      console.error(e);
+      return NextResponse.json({ error: "something went wrong in middleware" }, { status: 500 });
+    }
+  }
+  finally {
     // attach payload to next request
+    console.log(payload);
     const reqHeaders = new Headers(req.headers);
     reqHeaders.set("payload", JSON.stringify(payload));
     return NextResponse.next({
@@ -30,10 +50,6 @@ export async function middleware(req: NextRequest) {
         headers: reqHeaders,
       }
     });
-  }
-  catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "invalid or expired token", status: 400 });
   }
 }
 

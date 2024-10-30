@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     return Response.json({ status: 200 });
   }
   catch (e) {
-    console.log(e);
+    console.error(e);
     return Response.json({ error: "failed to retrieve template" });
   }
 }

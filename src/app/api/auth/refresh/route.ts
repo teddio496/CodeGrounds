@@ -1,30 +1,27 @@
 import * as jwt from "jsonwebtoken";
 import type { NextRequest } from "next/server";
 
-const verifyRefreshToken = (token: string): jwt.JwtPayload | null => {
+export default async function POST(req: NextRequest) {
+  console.log("INSIDE REFRESH TOKEN");
   try {
-    return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string) as jwt.JwtPayload;
-  } catch (e) {
-    return null;
+    const refreshToken = req.cookies.get("refreshToken")?.value;
+    if (!refreshToken) {
+      return Response.json({ message: "refresh token missing" });
+    }
+    const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET as string) as jwt.JwtPayload;
+    if (!payload) {
+      return Response.json({ message: "refresh token expired or missing" });
+    }
+    console.log("HERE IS THE REFRESH TOKEN PAYLOAD'S USERNAME: " + payload.username);
+    const newAccessToken = jwt.sign(
+      { username: payload.username },
+      process.env.ACCESS_TOKEN_SECRET as string,
+      { expiresIn: "5h" }
+    );
+    return Response.json({ accessToken: newAccessToken }, { status: 201 });
   }
-};
-
-const generateAccessToken = (user: jwt.JwtPayload) => {
-  const secretKey = process.env.ACCESS_TOKEN_SECRET || "defaultSecret";
-  return jwt.sign({ username: user.username }, secretKey, { expiresIn: "30m" });
-};
-
-export async function POST(req: NextRequest) {
-  const refreshToken = req.cookies.get("refreshToken")?.value;
-  if (!refreshToken) {
-    return Response.json({ message: "Refresh token missing" });
+  catch (e) {
+    console.error(e);
+    return Response.json({ error: "something went wrong with token refresh" }, { status: 500 });
   }
-
-  const user = verifyRefreshToken(refreshToken);
-  if (!user) {
-    return Response.json({ error: "Invalid or expired refresh token" });
-  }
-
-  const newAccessToken = generateAccessToken(user);
-  return Response.json({ accessToken: newAccessToken });
 }

@@ -20,10 +20,10 @@ export async function PUT(req: Request) {
         phoneNumber: newPhoneNumber ?? user.phoneNumber,
       }
     });
-    return Response.json({ updatedUser, status: 200 });
+    return Response.json({ updatedUser }, { status: 200 });
   }
   catch (e) {
-    console.log(e);
-    return Response.json({ error: "error updating user info" });
+    console.error(e);
+    return Response.json({ error: "error updating user info" }, { status: 500 });
   }
 }
