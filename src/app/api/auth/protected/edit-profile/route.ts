@@ -5,14 +5,14 @@ export async function PUT(req: Request) {
   const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
   try {
     const user = await prisma.user.findUnique({
-      where: { username: username }
+      where: { username }
     });
     if (!user) {
       return Response.json({ error: "username doesn't exist" });
     }
     const updatedUser = await prisma.user.update({
       where: {
-        username: username
+        username
       },
       data: {
         firstName: newFirstName ?? user.firstName,
@@ -20,7 +20,7 @@ export async function PUT(req: Request) {
         phoneNumber: newPhoneNumber ?? user.phoneNumber,
       }
     });
-    return Response.json({ updatedUser: updatedUser, status: 200 });
+    return Response.json({ updatedUser, status: 200 });
   }
   catch (e) {
     console.log(e);

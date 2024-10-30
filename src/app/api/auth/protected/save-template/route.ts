@@ -6,17 +6,17 @@ export async function POST(req: Request) {
   try {
     const template = await prisma.codeTemplate.create({
       data: {
-        title: title,
-        code: code,
-        explanation: explanation,
+        title,
+        code,
+        explanation,
         tags: {
           create: tags.map((tag: string) => { tag: tag; })
         },
-        username: username, // establishes connection to user
+        username, // establishes connection to user
       }
     });
 
-    return Response.json({ template: template, status: 201 });
+    return Response.json({ template, status: 201 });
   }
   catch (e) {
     console.log(e);

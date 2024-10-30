@@ -6,11 +6,11 @@ export async function POST(req: Request) {
   try {
     const fork = await prisma.codeTemplate.create({
       data: {
-        title: title,
-        code: code,
-        explanation: explanation,
-        username: username,
-        forkedFrom: forkedFrom,
+        title,
+        code,
+        explanation,
+        username,
+        forkedFrom,
       }
     });
 

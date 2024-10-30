@@ -6,8 +6,8 @@ export async function DELETE(req: Request) {
   try {
     const template = await prisma.codeTemplate.delete({
       where: {
-        username: username,
-        title: title,
+        username,
+        title,
       },
     });
 
