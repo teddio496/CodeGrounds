@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     const body = Object.fromEntries(formData);
     const file = (body.file as File) || null;
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
+    console.log("USERNAME: " + username);
 
     if (file) {
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -31,19 +32,16 @@ export async function POST(req: Request) {
         data: {
           avatar: fileUrl
         }
-      })
+      });
 
-      return NextResponse.json({ updatedUser, status: 200 });
+      return NextResponse.json({ updatedUser }, { status: 200 });
     }
     else {
-      return NextResponse.json({ error: "file doesn't exist" });
+      return NextResponse.json({ error: "file doesn't exist" }, { status: 404 });
     }
   }
   catch (e) {
     console.error(e);
-    return NextResponse.json(
-      { error: "Failed to upload file" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
   }
 };

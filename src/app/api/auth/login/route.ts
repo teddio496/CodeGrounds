@@ -22,7 +22,6 @@ export async function POST(req: Request) {
     // credentials are valid, generate a JWT
     const payload = {
       username: user.username,
-      expiresAt: Math.floor(Date.now() / 1000) + (60 * 15),
     };
     const accessToken = jwt.sign(
       payload,
@@ -35,7 +34,7 @@ export async function POST(req: Request) {
       { expiresIn: "5h" }
     );
 
-    const res = NextResponse.json({ accessToken, refreshToken });
+    const res = NextResponse.json({ accessToken, refreshToken }, { status: 201 });
     res.cookies.set("accessToken", accessToken, {
       httpOnly: true,
       sameSite: "strict",

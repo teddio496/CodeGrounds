@@ -61,7 +61,7 @@ async function execute_c(code: string, input: string): Promise<string> {
         return output || "No output from C/C++ program.";
         
     } catch (e) {
-        console.log(e);
+        console.error(e);
         return "Error executing C/C++ code";
     }
 }

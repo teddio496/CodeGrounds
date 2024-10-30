@@ -4,9 +4,9 @@ export async function PUT(req: Request) {
   const { title, code, explanation, tags } = await req.json();
   const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
   try {
-    const template = await prisma.codeTemplate.update({
+    const template = await prisma.template.update({
       where: {
-        username,
+        owner: username,
         title,
       },
       data: {
@@ -22,10 +22,10 @@ export async function PUT(req: Request) {
       }
     });
 
-    return Response.json({ message: "deleted code template " + JSON.stringify(template), status: 200 });
+    return Response.json({ message: "deleted code template " + JSON.stringify(template) }, { status: 200 });
   }
   catch (e) {
-    console.log(e);
-    return Response.json({ error: "failed to save code template", status: 500 });
+    console.error(e);
+    return Response.json({ error: "failed to save code template" }, { status: 500 });
   }
 }
