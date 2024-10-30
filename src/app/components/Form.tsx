@@ -2,11 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 
-const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlZGR5IiwiZXhwaXJlc0F0IjoxNzI5NjI0NDI2LCJpYXQiOjE3Mjk2MjM1MjYsImV4cCI6MTcyOTY0MTUyNn0.notmLNCLOu0kVS3Gc8kzrV9r-EF0SaF7XpUASZFFgF8";
-
 export const Form = () => {
-  const [base64str, setBase64str] = useState<string | null>(null);
+  const [form, setForm] = useState<FormData | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
 
   useEffect(() => {
@@ -14,31 +11,24 @@ export const Form = () => {
       try {
         const response = await fetch("../api/auth/protected/edit-avatar", {
           method: "POST",
-          body: JSON.stringify({
-            file: base64str,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          }
+          body: form,
         });
-        const result = await response.json();
-        console.log(result);
-        if (result.status === 200) {
+        const { updatedUser } = await response.json();
+        console.log("UPDATED USER AFTER AVATAR UPLOAD: ", updatedUser);
+        if (response.ok) {
           alert("Upload successful");
-          setAvatarUrl(base64str as string);
+          setAvatarUrl(updatedUser.avatar as string);
         } else {
-          alert("Upload failed: " + result.error);
+          alert("Upload failed");
         }
       }
       catch (e) {
-        console.log(e);
-        console.log("something went wrong with editAvatar()");
+        console.log("something went wrong with editAvatar()", e);
       }
     };
-    if (base64str) editAvatar();
-    console.log("use effect ran");
-  }, [base64str]);
+
+    if (form) editAvatar();
+  }, [form]);
 
   return (
     <div>
@@ -47,15 +37,9 @@ export const Form = () => {
         name="file"
         onChange={async (e) => {
           const file = e.target.files?.[0];
-          if (file) {
-            // convert to base 64
-            const reader = new FileReader();
-            reader.onload = () => {
-              const result = reader.result as string;
-              setBase64str(result);
-            };
-            reader.readAsDataURL(file);
-          }
+          const formData = new FormData();
+          formData.append("file", file as Blob);
+          setForm(formData);
         }}
       />
       <div>

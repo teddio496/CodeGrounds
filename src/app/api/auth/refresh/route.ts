@@ -1,10 +1,10 @@
 import * as jwt from "jsonwebtoken";
+import type { NextRequest } from "next/server";
 
 const verifyRefreshToken = (token: string): jwt.JwtPayload | null => {
-  const secretKey = process.env.REFRESH_TOKEN_SECRET || "defaultRefreshSecret";
   try {
-    return jwt.verify(token, secretKey) as jwt.JwtPayload;
-  } catch (error) {
+    return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string) as jwt.JwtPayload;
+  } catch (e) {
     return null;
   }
 };
@@ -14,8 +14,8 @@ const generateAccessToken = (user: jwt.JwtPayload) => {
   return jwt.sign({ username: user.username }, secretKey, { expiresIn: "30m" });
 };
 
-export async function POST(req: Request) {
-  const { refreshToken } = await req.json();
+export async function POST(req: NextRequest) {
+  const refreshToken = req.cookies.get("refreshToken")?.value;
   if (!refreshToken) {
     return Response.json({ message: "Refresh token missing" });
   }

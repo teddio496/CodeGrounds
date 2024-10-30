@@ -6,8 +6,8 @@ export async function PUT(req: Request) {
   try {
     const template = await prisma.codeTemplate.update({
       where: {
-        username: username,
-        title: title,
+        username,
+        title,
       },
       data: {
         code: code,
