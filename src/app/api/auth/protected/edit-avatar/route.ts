@@ -6,13 +6,14 @@ import fs from "fs";
 
 const UPLOAD_DIR = path.resolve(process.cwd(), "public/uploads");
 
-export async function POST(req: Request) {
+export async function PUT(req: Request) {
+  console.log("INSIDE EDIT-AVATAR");
   try {
     const formData = await req.formData();
     const body = Object.fromEntries(formData);
     const file = (body.file as File) || null;
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
-    
+
     console.log("USERNAME: " + username);
 
     if (file) {

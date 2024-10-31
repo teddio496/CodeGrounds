@@ -14,14 +14,22 @@ export async function PUT(req: Request) {
         code,
         explanation,
         tags: {
-          deleteMany: {},
-          // creating multiple related records
-          // ref: https://www.prisma.io/docs/orm/prisma-client/queries/relation-queries#create-a-related-record
-          // this strategy covers 3 potential cases: add, delete, and update tags
-          create: tags.map((tag: string) => { tag: tag; })
+          deleteMany: {}, // delete all tags
         }
-      }
+      },
     });
+
+    // add back tags
+    const createdTags = await Promise.all(
+      tags.map(async (tag: string) => {
+        return await prisma.templateTag.create({
+          data: {
+            t_id: updatedTemplate.t_id,
+            tag,
+          },
+        });
+      }
+    ));
 
     return Response.json({ updatedTemplate }, { status: 200 });
   }

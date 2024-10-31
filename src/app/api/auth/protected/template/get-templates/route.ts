@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
         ],
         tags: {
           every: {
-            title: {
+            tag: {
               in: tags,
             },
           },
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         ],
         tags: {
           every: {
-            title: {
+            tag: {
               in: tags,
             },
           },

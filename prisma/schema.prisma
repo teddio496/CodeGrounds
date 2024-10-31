@@ -42,13 +42,12 @@ model Template {
 }
 
 model TemplateTag {
-  t_id  Int    @unique
-  title String @unique // **title of the template
+  t_id  Int
   tag   String
-
+  
   template Template @relation(fields: [t_id], references: [t_id])
 
-  @@unique([tag, title]) // same tag cannot appear more than once for the same template
+  @@unique([tag, t_id]) // same tag cannot appear more than once for the same template
 }
 
 model BlogPost {
