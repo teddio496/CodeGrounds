@@ -4,8 +4,8 @@ import * as bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { username, password } = await req.json();
   try {
+    const { username, password } = await req.json();
     const user = await prisma.user.findUnique({
       where: { username },
     });
@@ -50,6 +50,6 @@ export async function POST(req: Request) {
   }
   catch (e) {
     console.error(e);
-    return Response.json({ error: "something went wrong with login" });
+    return Response.json({ error: "something went wrong with login" }, { status: 500 });
   }
 }
