@@ -3,7 +3,6 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { JWTExpired } from "jose/errors";
 import { getNewAccessToken, updateCookies } from "./app/api/auth/refresh/route";
-import { json } from "stream/consumers";
 // note: cannot use getPayload from utils/payload because it uses jsonwebtoken
 
 export async function middleware(req: NextRequest) {
@@ -19,7 +18,7 @@ export async function middleware(req: NextRequest) {
   // const token = authHeader.split(" ")[1];
   // console.log("THIS IS THE TOKEN: " + token);
 
-  let accessToken = req.cookies.get("accessToken")?.value;
+  const accessToken = req.cookies.get("accessToken")?.value;
   console.log("THIS IS THE TOKEN: ", accessToken);
   try {
     const { payload } = await jwtVerify(accessToken as string, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
