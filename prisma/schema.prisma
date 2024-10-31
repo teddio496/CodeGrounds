@@ -14,14 +14,14 @@ datasource db {
 }
 
 model User {
-  username         String            @unique
-  password         String
-  firstName        String            @default("")
-  lastName         String            @default("")
-  avatar           String            @default("")
-  phoneNumber      String            @default("")
-  role             String            @default("User")
-  createdAt        DateTime          @default(now())
+  username    String   @unique
+  password    String
+  firstName   String   @default("")
+  lastName    String   @default("")
+  avatar      String   @default("")
+  phoneNumber String   @default("")
+  role        String   @default("User")
+  createdAt   DateTime @default(now())
 
   templates        Template[]
   blogPosts        BlogPost[]
@@ -31,40 +31,42 @@ model User {
 }
 
 model Template {
-  t_id        Int           @id @default(autoincrement())
-  title       String        
+  t_id        Int     @id @default(autoincrement())
+  title       String
   owner       String
-  code        String        @default("")
-  explanation String        @default("")
-  public      Boolean       @default(false)
+  code        String  @default("")
+  explanation String  @default("")
+  public      Boolean @default(false)
   forkedFrom  String?
 
-  tags        TemplateTag[]
-  blogs       BlogPost[]
+  tags  TemplateTag[]
+  blogs BlogPost[]
 
   user User @relation(fields: [owner], references: [username])
+
+  @@unique([owner, title])
 }
 
 model TemplateTag {
-  t_id  Int
-  tag   String
-  
+  t_id Int
+  tag  String
+
   template Template @relation(fields: [t_id], references: [t_id])
 
   @@unique([tag, t_id]) // same tag cannot appear more than once for the same template
 }
 
 model BlogPost {
-  b_id         Int            @id @default(autoincrement())
-  title        String
-  description  String
-  content      String
-  authorName   String
-  upvotes      Int            @default(0)
-  downvotes    Int            @default(0)
-  createdAt    DateTime       @default(now())
-  hidden       Boolean        @default(false)
-  author       User           @relation(fields: [authorName], references: [username])
+  b_id        Int      @id @default(autoincrement())
+  title       String
+  description String
+  content     String
+  authorName  String
+  upvotes     Int      @default(0)
+  downvotes   Int      @default(0)
+  createdAt   DateTime @default(now())
+  hidden      Boolean  @default(false)
+  author      User     @relation(fields: [authorName], references: [username])
 
   templates    Template[]
   comments     Comment[]
@@ -74,8 +76,8 @@ model BlogPost {
 }
 
 model BlogPostTag {
-  b_id     Int
-  tag      String
+  b_id Int
+  tag  String
 
   BlogPost BlogPost @relation(fields: [b_id], references: [b_id])
 
@@ -83,7 +85,7 @@ model BlogPostTag {
 }
 
 model upDownVotes {
-  isUp     Boolean  @default(true)
+  isUp     Boolean @default(true)
   username String
   b_id     Int
 
@@ -102,8 +104,8 @@ model Comment {
   createdAt       DateTime          @default(now())
   reportedComment reportedComment[]
 
-  parent          Comment?          @relation("CommentToComment", fields: [parentId], references: [c_id])
-  children        Comment[]         @relation("CommentToComment")
+  parent   Comment?  @relation("CommentToComment", fields: [parentId], references: [c_id])
+  children Comment[] @relation("CommentToComment")
 }
 
 model reportedBlog {
