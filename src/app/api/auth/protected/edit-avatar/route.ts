@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     const body = Object.fromEntries(formData);
     const file = (body.file as File) || null;
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
+    
     console.log("USERNAME: " + username);
 
     if (file) {
@@ -42,6 +43,6 @@ export async function POST(req: Request) {
   }
   catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
+    return NextResponse.json({ error: "failed to upload avatar" }, { status: 500 });
   }
 };
