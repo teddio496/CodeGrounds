@@ -13,7 +13,7 @@ export async function getNewAccessToken(refreshToken: string) {
     const { payload } = await jwtVerify(refreshToken, new TextEncoder().encode(process.env.REFRESH_TOKEN_SECRET));
     const newAccessToken = await new SignJWT({ username: payload.username })
       .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("10h")
+      .setExpirationTime("15m")
       .sign(new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
     console.log("THE NEW ACCESS TOKEN: " + newAccessToken);
     return newAccessToken;

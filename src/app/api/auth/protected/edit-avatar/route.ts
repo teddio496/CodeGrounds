@@ -6,7 +6,7 @@ import fs from "fs";
 
 const UPLOAD_DIR = path.resolve(process.cwd(), "public/uploads");
 
-export async function POST(req: Request) {
+export async function PUT(req: Request) {
   console.log("INSIDE EDIT-AVATAR");
   try {
     const formData = await req.formData();
