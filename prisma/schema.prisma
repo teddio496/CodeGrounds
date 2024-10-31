@@ -22,21 +22,25 @@ model User {
   phoneNumber      String            @default("")
   role             String            @default("User")
   createdAt        DateTime          @default(now())
+
   templates        Template[]
   blogPosts        BlogPost[]
   reportedBlogs    reportedBlog[]
   reportedComments reportedComment[]
+  upDownVotes      upDownVotes[]
 }
 
 model Template {
   t_id        Int           @id @default(autoincrement())
-  title       String        @unique
+  title       String        
   owner       String
   code        String        @default("")
   explanation String        @default("")
   public      Boolean       @default(false)
   forkedFrom  String?
+
   tags        TemplateTag[]
+  blogs       BlogPost[]
 
   user User @relation(fields: [owner], references: [username])
 }
@@ -54,23 +58,39 @@ model BlogPost {
   b_id         Int            @id @default(autoincrement())
   title        String
   description  String
-  tag          String
   content      String
   authorName   String
   upvotes      Int            @default(0)
   downvotes    Int            @default(0)
   createdAt    DateTime       @default(now())
-  hidden       Boolean
+  hidden       Boolean        @default(false)
   author       User           @relation(fields: [authorName], references: [username])
+
+  templates    Template[]
   comments     Comment[]
-  BlogPostTag  BlogPostTag[]
+  tags         BlogPostTag[]
   reportedBlog reportedBlog[]
+  upDownVotes  upDownVotes[]
 }
 
 model BlogPostTag {
-  b_id     Int      @unique
+  b_id     Int
   tag      String
+
   BlogPost BlogPost @relation(fields: [b_id], references: [b_id])
+
+  @@unique([b_id, tag])
+}
+
+model upDownVotes {
+  isUp     Boolean  @default(true)
+  username String
+  b_id     Int
+
+  BlogPost BlogPost @relation(fields: [b_id], references: [b_id])
+  User     User     @relation(fields: [username], references: [username])
+
+  @@unique([username, b_id, isUp])
 }
 
 model Comment {
@@ -79,10 +99,11 @@ model Comment {
   postId          Int
   post            BlogPost          @relation(fields: [postId], references: [b_id])
   parentId        Int?
-  parent          Comment?          @relation("CommentToComment", fields: [parentId], references: [c_id])
-  children        Comment[]         @relation("CommentToComment")
   createdAt       DateTime          @default(now())
   reportedComment reportedComment[]
+
+  parent          Comment?          @relation("CommentToComment", fields: [parentId], references: [c_id])
+  children        Comment[]         @relation("CommentToComment")
 }
 
 model reportedBlog {
