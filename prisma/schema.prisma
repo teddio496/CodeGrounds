@@ -28,6 +28,8 @@ model User {
   reportedBlogs    reportedBlog[]
   reportedComments reportedComment[]
   upDownVotes      upDownVotes[]
+  comments         Comment[]
+  commentVotes     CommentUpDownVotes[]
 }
 
 model Template {
@@ -92,35 +94,51 @@ model upDownVotes {
   BlogPost BlogPost @relation(fields: [b_id], references: [b_id])
   User     User     @relation(fields: [username], references: [username])
 
-  @@unique([username, b_id, isUp])
+  @@unique([username, b_id])
 }
 
 model Comment {
   c_id            Int               @id @default(autoincrement())
   content         String
   postId          Int
-  post            BlogPost          @relation(fields: [postId], references: [b_id])
   parentId        Int?
+  authorName      String
   createdAt       DateTime          @default(now())
   reportedComment reportedComment[]
 
-  parent   Comment?  @relation("CommentToComment", fields: [parentId], references: [c_id])
-  children Comment[] @relation("CommentToComment")
+  post BlogPost @relation(fields: [postId], references: [b_id])
+  user User     @relation(fields: [authorName], references: [username])
+
+  parent   Comment?             @relation("CommentToComment", fields: [parentId], references: [c_id])
+  children Comment[]            @relation("CommentToComment")
+  votes    CommentUpDownVotes[]
+}
+
+model CommentUpDownVotes {
+  isUp     Boolean @default(true)
+  username String
+  c_id     Int
+
+  Comment Comment @relation(fields: [c_id], references: [c_id])
+  User    User    @relation(fields: [username], references: [username])
+
+  @@unique([username, c_id])
 }
 
 model reportedBlog {
-  b_id     Int
-  username String
-
-  BlogPost BlogPost @relation(fields: [b_id], references: [b_id])
-  User     User     @relation(fields: [username], references: [username])
+  b_id      Int
+  username  String
+  createdAt DateTime @default(now())
+  BlogPost  BlogPost @relation(fields: [b_id], references: [b_id])
+  User      User     @relation(fields: [username], references: [username])
 
   @@unique([b_id, username])
 }
 
 model reportedComment {
-  c_id     Int
-  username String
+  c_id      Int
+  username  String
+  createdAt DateTime @default(now())
 
   Comment Comment @relation(fields: [c_id], references: [c_id])
   User    User    @relation(fields: [username], references: [username])
