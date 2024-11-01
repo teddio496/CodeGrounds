@@ -22,6 +22,7 @@ export async function POST(req: Request) {
     // credentials are valid, generate a JWT
     const payload = {
       username: user.username,
+      role: user.role
     };
     const accessToken = jwt.sign(
       payload,

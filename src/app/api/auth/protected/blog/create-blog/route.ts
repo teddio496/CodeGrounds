@@ -1,26 +1,31 @@
 import { prisma } from "@/utils/prismaClient";
 
-export default async function POST(req: Request) {
+export async function POST(req: Request) {
     try {
-        const { title, description, tags, content } = await req.json();
+        const { title, description, tags, content, codeTemplates } = await req.json();
         const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string; [key: string]: any };
-        
-        const newBlogPost = prisma.blogPost.create({
+
+        // Create the new blog post and connect tags and codeTemplates
+        const newBlogPost = await prisma.blogPost.create({
             data: {
                 title,
                 description,
-                content, 
+                content,
                 authorName: username,
                 tags: {
-                    create: tags.map((tag: string) => { tag: tag })
-                }
-            }
+                    create: tags.map((tag: string) => ({ tag })),
+                },
+                templates: {
+                    connect: codeTemplates.map((templateId: number) => ({ t_id: templateId })),
+                },
+            },
         });
 
-        return Response.json({message: "successfully added a blog"}, {status: 201});
+        return new Response(JSON.stringify({ message: "successfully added a blog" }), { status: 201 });
 
     } catch (e) {
         console.error(e);
-        return Response.json({ error: "failed to create new blog post" }, { status: 500 });
+        return new Response(JSON.stringify({ error: "failed to create new blog post" }), { status: 500 });
     }
 }
+   

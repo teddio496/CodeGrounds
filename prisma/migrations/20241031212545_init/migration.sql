@@ -65,8 +65,10 @@ CREATE TABLE "Comment" (
     "content" TEXT NOT NULL,
     "postId" INTEGER NOT NULL,
     "parentId" INTEGER,
+    "authorName" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Comment_postId_fkey" FOREIGN KEY ("postId") REFERENCES "BlogPost" ("b_id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Comment_authorName_fkey" FOREIGN KEY ("authorName") REFERENCES "User" ("username") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Comment_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Comment" ("c_id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -74,6 +76,7 @@ CREATE TABLE "Comment" (
 CREATE TABLE "reportedBlog" (
     "b_id" INTEGER NOT NULL,
     "username" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "reportedBlog_b_id_fkey" FOREIGN KEY ("b_id") REFERENCES "BlogPost" ("b_id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "reportedBlog_username_fkey" FOREIGN KEY ("username") REFERENCES "User" ("username") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -82,6 +85,7 @@ CREATE TABLE "reportedBlog" (
 CREATE TABLE "reportedComment" (
     "c_id" INTEGER NOT NULL,
     "username" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "reportedComment_c_id_fkey" FOREIGN KEY ("c_id") REFERENCES "Comment" ("c_id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "reportedComment_username_fkey" FOREIGN KEY ("username") REFERENCES "User" ("username") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -107,7 +111,7 @@ CREATE UNIQUE INDEX "TemplateTag_tag_t_id_key" ON "TemplateTag"("tag", "t_id");
 CREATE UNIQUE INDEX "BlogPostTag_b_id_tag_key" ON "BlogPostTag"("b_id", "tag");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "upDownVotes_username_b_id_isUp_key" ON "upDownVotes"("username", "b_id", "isUp");
+CREATE UNIQUE INDEX "upDownVotes_username_b_id_key" ON "upDownVotes"("username", "b_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "reportedBlog_b_id_username_key" ON "reportedBlog"("b_id", "username");

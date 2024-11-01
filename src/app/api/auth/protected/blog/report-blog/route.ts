@@ -2,17 +2,17 @@ import { prisma } from "@/utils/prismaClient";
 
 export async function POST(req: Request) {
     try {
-        const { c_id } = await req.json();
+        const { b_id } = await req.json();
         const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string; [key: string]: any };
-        
-        const check = await prisma.reportedComment.findUnique({ where: { c_id_username: { c_id, username } }})
+
+        const check = await prisma.reportedBlog.findUnique({ where: { b_id_username: { b_id, username } }})
         if (check) {
-            return new Response(JSON.stringify({ message: "you have already reported this comment!" }), { status: 400 });
+            return new Response(JSON.stringify({ message: "you have already reported this blog!" }), { status: 400 });
         }
 
-        const newBlogReport= await prisma.reportedComment.create({
+        const newBlogReport= await prisma.reportedBlog.create({
             data: {
-                c_id, 
+                b_id, 
                 username,
             },
         });
