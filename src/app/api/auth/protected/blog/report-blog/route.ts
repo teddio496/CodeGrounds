@@ -2,7 +2,7 @@ import { prisma } from "@/utils/prismaClient";
 
 export async function POST(req: Request) {
     try {
-        const { b_id } = await req.json();
+        const { b_id, explanation } = await req.json();
         const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string; [key: string]: any };
 
         const check = await prisma.reportedBlog.findUnique({ where: { b_id_username: { b_id, username } }})
@@ -14,6 +14,7 @@ export async function POST(req: Request) {
             data: {
                 b_id, 
                 username,
+                explanation
             },
         });
 

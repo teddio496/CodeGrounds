@@ -103,6 +103,8 @@ model Comment {
   postId          Int
   parentId        Int?
   authorName      String
+  upvotes         Int               @default(0)
+  downvotes       Int               @default(0)
   createdAt       DateTime          @default(now())
   reportedComment reportedComment[]
 
@@ -126,19 +128,22 @@ model CommentUpDownVotes {
 }
 
 model reportedBlog {
-  b_id      Int
-  username  String
-  createdAt DateTime @default(now())
-  BlogPost  BlogPost @relation(fields: [b_id], references: [b_id])
-  User      User     @relation(fields: [username], references: [username])
+  b_id        Int
+  username    String
+  explanation String
+  createdAt   DateTime @default(now())
+
+  BlogPost BlogPost @relation(fields: [b_id], references: [b_id])
+  User     User     @relation(fields: [username], references: [username])
 
   @@unique([b_id, username])
 }
 
 model reportedComment {
-  c_id      Int
-  username  String
-  createdAt DateTime @default(now())
+  c_id        Int
+  username    String
+  explanation String
+  createdAt   DateTime @default(now())
 
   Comment Comment @relation(fields: [c_id], references: [c_id])
   User    User    @relation(fields: [username], references: [username])

@@ -11,11 +11,10 @@ export async function GET(req: NextRequest) {
     const tags = url.searchParams.getAll("tags");
     const codeTemplates = url.searchParams.getAll("codeTemplates");
     const page = parseInt(url.searchParams.get("page") || "1", 10);
-    const authorName = url.searchParams.get("author") || "";
-    const pageSize = parseInt(url.searchParams.get("pageSize") || "10", 10);
-    const most_value = url.searchParams.get("most_value") || "";
-    const most_controversial = url.searchParams.get("most_controversial") || "";
+        const pageSize = parseInt(url.searchParams.get("pageSize") || "10", 10);
     const offset = (page - 1) * pageSize;
+
+    const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string };
 
     if (b_id != -1){
         const blogPost = await prisma.blogPost.findUnique({
@@ -37,8 +36,7 @@ export async function GET(req: NextRequest) {
           { title: { contains: title } },
           { content: { contains: content } },
           { description: { contains: description } },
-          { authorName : { contains: authorName }},
-          { hidden : false }
+          { authorName : username }
         ],
       },
       select: { b_id: true },
