@@ -5,6 +5,13 @@ export async function POST(req: Request) {
         const { b_id, title, description, tags, content, codeTemplates } = await req.json();
         const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string; [key: string]: any };
 
+        const checkIfHidden = await prisma.blogPost.findUnique({
+            where: { b_id }
+        })
+        if (checkIfHidden?.hidden) {
+            return new Response(JSON.stringify({ message: "This content is hidden by the Admin, you may not edit this blog!" }), { status: 401 });
+        }
+
         await prisma.blogPostTag.deleteMany({
             where: { b_id },
         });
