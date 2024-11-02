@@ -38,6 +38,7 @@ export async function middleware(req: NextRequest) {
       const { payload } = await jwtVerify(newAccessToken as string, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
       const res = NextResponse.next();
       await updateCookies(newAccessToken, res);
+      // console.log(payload)
       res.headers.set("payload", JSON.stringify(payload));
       return res;
     }
