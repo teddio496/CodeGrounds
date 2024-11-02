@@ -1,7 +1,7 @@
 import { prisma } from "@/utils/prismaClient";
 import * as bcrypt from "bcrypt";
 
-export async function GET(){
+export async function POST(){
     // PASSWORD IS "adminpassword"
     try {
         const saltRounds = 10;
@@ -10,6 +10,7 @@ export async function GET(){
             data : {
                 username: "Admin User",
                 password,
+                role: "Admin"
             }
         })
         return Response.json({ message: "successfully created a admin user" }, { status: 201 });

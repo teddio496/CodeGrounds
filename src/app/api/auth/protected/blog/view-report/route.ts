@@ -2,8 +2,13 @@ import { prisma } from "@/utils/prismaClient";
 
 export async function GET(req: Request) {
     try {
-        const { role } = JSON.parse(req.headers.get("payload") as string) as { role: string };
-        if (role !== 'Admin') {
+        const { username, role } = JSON.parse(req.headers.get("payload") as string) as { username: string, role: string };
+
+        const checkAdminDb = await prisma.user.findUnique({ where : { username }})
+        // console.log(role)
+        // console.log(checkAdminDb)
+        
+        if (role !== 'Admin' || checkAdminDb?.role !== 'Admin') {
             return new Response(JSON.stringify({ error: "You don't have permissions to view reports" }), { status: 401 });
         }
 
