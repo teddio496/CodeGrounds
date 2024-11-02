@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     const refreshToken = jwt.sign(
       payload,
       process.env.REFRESH_TOKEN_SECRET as string,
-      { expiresIn: "5h" }
+      { expiresIn: "7d" }
     );
 
     const res = NextResponse.json({ accessToken, refreshToken }, { status: 201 });

@@ -10,7 +10,7 @@ export const Form = () => {
     async function editAvatar() {
       try {
         const response = await fetch("../api/auth/protected/edit-avatar", {
-          method: "POST",
+          method: "PUT",
           body: form,
         });
         const { updatedUser } = await response.json();
