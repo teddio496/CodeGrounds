@@ -37,15 +37,17 @@ model Template {
   title       String
   owner       String
   code        String  @default("")
+  language    String  @default("Python")
   explanation String  @default("")
   public      Boolean @default(false)
-  forkedFrom  String?
+  forkedFrom  Int?
 
-  tags  TemplateTag[]
-  blogs BlogPost[]
+  tags     TemplateTag[]
+  blogs    BlogPost[]
+  parent   Template?       @relation("TemplateToTemplate", fields: [forkedFrom], references: [t_id])
+  children Template[]      @relation("TemplateToTemplate")
 
-  user User @relation(fields: [owner], references: [username])
-
+  user     User            @relation(fields: [owner], references: [username])
   @@unique([owner, title])
 }
 
@@ -68,6 +70,7 @@ model BlogPost {
   downvotes   Int      @default(0)
   createdAt   DateTime @default(now())
   hidden      Boolean  @default(false)
+
   author      User     @relation(fields: [authorName], references: [username])
 
   templates    Template[]

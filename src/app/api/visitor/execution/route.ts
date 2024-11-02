@@ -130,7 +130,7 @@ export async function POST(req: Request) {
                 return Response.json({ message: "Not a supported language", status: 400 });
         }
         
-        return Response.json({ output: result, status: 200 });
+        return Response.json({ output: result },{ status: 200 });
 
     } catch {
             return Response.json({ message: "Error during code execution", status: 500 });

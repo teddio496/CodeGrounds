@@ -5,7 +5,6 @@ export async function POST(req: Request) {
         const { title, description, tags, content, codeTemplates } = await req.json();
         const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string; [key: string]: any };
 
-        // Create the new blog post and connect tags and codeTemplates
         const newBlogPost = await prisma.blogPost.create({
             data: {
                 title,
