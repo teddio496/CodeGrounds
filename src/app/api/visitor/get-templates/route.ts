@@ -1,7 +1,8 @@
 import { prisma } from "@/utils/prismaClient";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
-// Search through all templates in the system with pagination
+// search through all templates in the system with pagination
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
         tags: true,
         blogs: {
           where: { hidden: false },
-          select: { 
+          select: {
             b_id: true,
             title: true,
             description: true,
@@ -34,39 +35,44 @@ export async function GET(req: NextRequest) {
             authorName: true,
             createdAt: true,
             upvotes: true,
-            downvotes: true
-          }
-        }
+            downvotes: true,
+          },
+        },
       },
       skip: offset,
       take: pageSize,
     });
-    console.log(tags)
-    const templatesByTag = tags.length == 0 ? templates :  await prisma.template.findMany({
-      where: {
-        public: true,
-        tags: {
-          some: {
-            tag: {
-              in: tags,
+
+    console.log(tags);
+    const templatesByTag =
+      tags.length === 0
+        ? templates
+        : await prisma.template.findMany({
+            where: {
+              public: true,
+              tags: {
+                some: {
+                  tag: {
+                    in: tags,
+                  },
+                },
+              },
             },
-          },
-        },
-      },
-    });
-    console.log(templates)
-    console.log(templatesByTag)
+          });
+
+    console.log(templates);
+    console.log(templatesByTag);
 
     const interesectedTemplates = templates.filter((template) => {
-      for (const tagTemplate of templatesByTag){
-        if (tagTemplate.t_id == template.t_id){
-          return true
+      for (const tagTemplate of templatesByTag) {
+        if (tagTemplate.t_id === template.t_id) {
+          return true;
         }
       }
-      return false
-    })
+      return false;
+    });
 
-    // Get number of all matching templates
+    // get number of all matching templates
     const totalTemplates = await prisma.template.count({
       where: {
         OR: [
@@ -84,7 +90,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Calculate total pages
+    // calculate total pages
     const totalPages = Math.ceil(totalTemplates / pageSize);
 
     return NextResponse.json(
@@ -92,9 +98,34 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error searching templates:", error);
+    console.error("error searching templates:", error);
+
+    // handle specific prisma errors
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json(
+        { error: "known request error occurred while searching templates" },
+        { status: 400 } // or another appropriate status
+      );
+    }
+
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      return NextResponse.json(
+        { error: "validation error occurred while searching templates" },
+        { status: 422 } // unprocessable entity
+      );
+    }
+
+    // handle other possible errors (e.g., malformed url)
+    if (error instanceof TypeError) {
+      return NextResponse.json(
+        { error: "invalid input or request format" },
+        { status: 400 }
+      );
+    }
+
+    // catch-all for any other errors
     return NextResponse.json(
-      { error: "Failed to search templates" },
+      { error: "failed to search templates" },
       { status: 500 }
     );
   }

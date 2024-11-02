@@ -1,12 +1,13 @@
 import { prisma } from "@/utils/prismaClient";
+import { Prisma } from "@prisma/client";
 
 export async function PUT(req: Request) {
   try {
+    // extract template data from request body
     const { t_id, title, code, explanation, tags, isPublic } = await req.json();
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
 
-    // must make sure we are finding the right template selected (t_id)
-    // and that this template belongs to `username`
+    // update the template ensuring it belongs to the specified username
     const updatedTemplate = await prisma.template.update({
       where: {
         t_id,
@@ -16,10 +17,10 @@ export async function PUT(req: Request) {
         title,
         code,
         explanation,
+        public: isPublic,
         tags: {
-          deleteMany: {}, // delete all tags
+          deleteMany: {}, // delete all existing tags
         },
-        public: isPublic
       },
     });
 
@@ -32,13 +33,23 @@ export async function PUT(req: Request) {
             tag,
           },
         });
-      }
-    ));
+      })
+    );
 
     return Response.json({ updatedTemplate }, { status: 200 });
   }
   catch (e) {
     console.error(e);
-    return Response.json({ error: "failed to update template" }, { status: 500 });
+    // handle specific Prisma errors
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === "P2001") {
+        return Response.json({ error: "template not found." }, { status: 404 }); // not found
+      }
+      return Response.json({ error: e.message }, { status: 400 }); // bad request for other validation issues
+    } else if (e instanceof Prisma.PrismaClientValidationError) {
+      return Response.json({ error: "validation error: " + e.message }, { status: 422 }); // unprocessable entity
+    } else {
+      return Response.json({ error: "failed to update template" }, { status: 500 }); // internal server error
+    }
   }
 }

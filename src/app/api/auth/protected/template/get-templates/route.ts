@@ -1,93 +1,34 @@
 import { prisma } from "@/utils/prismaClient";
-import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
-// Search through all templates in the system with pagination
-export async function GET(req: NextRequest) {
+export async function DELETE(req: Request) {
   try {
-    const url = new URL(req.url);
-    const title = url.searchParams.get("title") || "";
-    const explanation = url.searchParams.get("explanation") || "";
-    const code = url.searchParams.get("code") || "";
-    const tags = url.searchParams.getAll("tags") || [];
-    const page = parseInt(url.searchParams.get("page") || "1", 10);
-    const pageSize = parseInt(url.searchParams.get("pageSize") || "10", 10);
+    // extract template ID from request body
+    const { t_id } = await req.json();
+    const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
 
-    const offset = (page - 1) * pageSize;
-
-    const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string; [key: string]: any; };
-
-    const templates = await prisma.template.findMany({
+    // attempt to delete the specified template ensuring it belongs to the specified username
+    const template = await prisma.template.delete({
       where: {
+        t_id,
         owner: username,
-        AND: [
-          { title: { contains: title } },
-          { explanation: { contains: explanation } },
-          { code: { contains: code } },
-        ],
       },
-      include: {
-        tags: true,
-      },
-      skip: offset,
-      take: pageSize,
     });
-    console.log(tags)
-    const templatesByTag = tags.length == 0 ? templates :  await prisma.template.findMany({
-      where: {
-        tags: {
-          some: {
-            tag: {
-              in: tags,
-            },
-          },
-        },
-      },
-      include: {
-        tags: true
+
+    return Response.json({ message: "deleted code template " + JSON.stringify(template) }, { status: 200 });
+  }
+  catch (e) {
+    console.error(e);
+    // handle specific Prisma errors
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === "P2001") {
+        return Response.json({ error: "template not found." }, { status: 404 }); // not found
       }
-    });
-    console.log(templates)
-    console.log(templatesByTag)
-
-    const interesectedTemplates = templates.filter((template) => {
-      for (const tagTemplate of templatesByTag){
-        if (tagTemplate.t_id == template.t_id){
-          return true
-        }
-      }
-      return false
-    })
-    
-    // Get number of all matching templates
-    const totalTemplates = await prisma.template.count({
-      where: {
-        OR: [
-          { title: { contains: title } },
-          { explanation: { contains: explanation } },
-          { code: { contains: code } },
-        ],
-        tags: {
-          every: {
-            tag: {
-              in: tags,
-            },
-          },
-        },
-      },
-    });
-
-    // Calculate total pages
-    const totalPages = Math.ceil(totalTemplates / pageSize);
-
-    return NextResponse.json(
-      { templates: interesectedTemplates, totalTemplates, totalPages, currentPage: page },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error searching templates:", error);
-    return NextResponse.json(
-      { error: "Failed to search templates" },
-      { status: 500 }
-    );
+      return Response.json({ error: e.message }, { status: 400 }); // bad request for other validation issues
+    } else if (e instanceof Prisma.PrismaClientValidationError) {
+      return Response.json({ error: "validation error: " + e.message }, { status: 422 }); // unprocessable entity
+    } else {
+      return Response.json({ error: "failed to delete template" }, { status: 500 }); // internal server error
+    }
   }
 }

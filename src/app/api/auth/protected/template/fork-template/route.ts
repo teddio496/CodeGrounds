@@ -1,28 +1,40 @@
 import { prisma } from "@/utils/prismaClient";
-import { only } from "node:test";
+import { Prisma } from "@prisma/client"; // import the Prisma namespace
 
-// note: cannot just have one fork-template route
-// the protected one needs to go through middleware to obtain payload and username
 export async function POST(req: Request) {
   try {
+    // extract t_id and title from request body
     const { t_id, title } = await req.json();
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
-    
-    const forkingFrom: any = await prisma.template.findUnique({where: { t_id }})
 
-    const yourTitles = await prisma.template.findMany({
-      where : {
-        owner:username
-      },
-      select: { title: true }
-    })
-    const onlyTitles = yourTitles.map((title) => title.title)
-    if (yourTitles.includes(title) || (!title && onlyTitles.includes(forkingFrom.title))){
-      return Response.json({ message: "Please change the title, you already have a template of this title." }, { status: 400 });
+    // find the template being forked
+    const forkingFrom = await prisma.template.findUnique({ where: { t_id } });
+
+    // check if the template exists
+    if (!forkingFrom) {
+      return Response.json({ error: "template not found." }, { status: 404 }); // not found
     }
 
+    // retrieve titles of templates owned by the user
+    const yourTitles = await prisma.template.findMany({
+      where: {
+        owner: username
+      },
+      select: { title: true }
+    });
 
-    const { t_id: _ , ...withoutTid } = forkingFrom
+    const onlyTitles = yourTitles.map((template) => template.title);
+
+    // check for title conflicts
+    if (onlyTitles.includes(title) || (!title && onlyTitles.includes(forkingFrom.title))) {
+      return Response.json(
+        { error: "please change the title, you already have a template of this title." },
+        { status: 400 } // bad request
+      );
+    }
+
+    // prepare data for new forked template
+    const { t_id: _, ...withoutTid } = forkingFrom;
     const fork = await prisma.template.create({
       data: {
         ...withoutTid,
@@ -36,6 +48,34 @@ export async function POST(req: Request) {
   }
   catch (e) {
     console.error(e);
-    return Response.json({ error: "failed to fork template" }, { status: 500 });
+
+    // handle specific Prisma errors
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === "P2002") {
+        // unique constraint violation (e.g., title already exists for this user)
+        return Response.json(
+          { error: "template with this title already exists for this user." },
+          { status: 409 } // conflict status
+        );
+      } else {
+        // other Prisma known request errors
+        return Response.json(
+          { error: e.message },
+          { status: 400 } // bad request for other validation issues
+        );
+      }
+    } else if (e instanceof Prisma.PrismaClientValidationError) {
+      // validation error (e.g., input not matching schema)
+      return Response.json( 
+        { error: "validation error: " + e.message },
+        { status: 422 } // unprocessable entity
+      );
+    } else {
+      // unexpected error
+      return Response.json(
+        { error: "failed to fork template" },
+        { status: 500 } // internal server error
+      );
+    }
   }
 }
