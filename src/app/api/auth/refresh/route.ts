@@ -8,6 +8,7 @@ export async function getNewAccessToken(refreshToken: string) {
     console.error("refresh token not passed to getNewAccessToken()");
     return null;
   }
+  
   try {
     console.log("HERE");
     const { payload } = await jwtVerify(refreshToken, new TextEncoder().encode(process.env.REFRESH_TOKEN_SECRET));
