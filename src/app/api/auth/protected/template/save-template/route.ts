@@ -3,7 +3,7 @@ import { prisma } from "@/utils/prismaClient";
 export async function POST(req: Request) {
   console.log("REACHED SAVE TEMPLATE");
   try {
-    const { title, code, explanation, tags } = await req.json();
+    const { title, code, explanation, tags, language } = await req.json();
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
 
     const newTemplate = await prisma.template.create({
@@ -12,6 +12,7 @@ export async function POST(req: Request) {
         title,
         code,
         explanation,
+        language,
       }
     });
 

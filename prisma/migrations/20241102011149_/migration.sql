@@ -16,6 +16,7 @@ CREATE TABLE "Template" (
     "title" TEXT NOT NULL,
     "owner" TEXT NOT NULL,
     "code" TEXT NOT NULL DEFAULT '',
+    "language" TEXT NOT NULL DEFAULT 'Python',
     "explanation" TEXT NOT NULL DEFAULT '',
     "public" BOOLEAN NOT NULL DEFAULT false,
     "forkedFrom" TEXT,
@@ -66,6 +67,8 @@ CREATE TABLE "Comment" (
     "postId" INTEGER NOT NULL,
     "parentId" INTEGER,
     "authorName" TEXT NOT NULL,
+    "upvotes" INTEGER NOT NULL DEFAULT 0,
+    "downvotes" INTEGER NOT NULL DEFAULT 0,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Comment_postId_fkey" FOREIGN KEY ("postId") REFERENCES "BlogPost" ("b_id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Comment_authorName_fkey" FOREIGN KEY ("authorName") REFERENCES "User" ("username") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -85,6 +88,7 @@ CREATE TABLE "CommentUpDownVotes" (
 CREATE TABLE "reportedBlog" (
     "b_id" INTEGER NOT NULL,
     "username" TEXT NOT NULL,
+    "explanation" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "reportedBlog_b_id_fkey" FOREIGN KEY ("b_id") REFERENCES "BlogPost" ("b_id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "reportedBlog_username_fkey" FOREIGN KEY ("username") REFERENCES "User" ("username") ON DELETE RESTRICT ON UPDATE CASCADE
@@ -94,6 +98,7 @@ CREATE TABLE "reportedBlog" (
 CREATE TABLE "reportedComment" (
     "c_id" INTEGER NOT NULL,
     "username" TEXT NOT NULL,
+    "explanation" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "reportedComment_c_id_fkey" FOREIGN KEY ("c_id") REFERENCES "Comment" ("c_id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "reportedComment_username_fkey" FOREIGN KEY ("username") REFERENCES "User" ("username") ON DELETE RESTRICT ON UPDATE CASCADE

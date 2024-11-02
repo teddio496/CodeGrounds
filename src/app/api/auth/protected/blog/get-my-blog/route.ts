@@ -11,8 +11,10 @@ export async function GET(req: NextRequest) {
     const tags = url.searchParams.getAll("tags");
     const codeTemplates = url.searchParams.getAll("codeTemplates");
     const page = parseInt(url.searchParams.get("page") || "1", 10);
-        const pageSize = parseInt(url.searchParams.get("pageSize") || "10", 10);
+    const pageSize = parseInt(url.searchParams.get("pageSize") || "10", 10);
     const offset = (page - 1) * pageSize;
+    const most_value = url.searchParams.get("most_value") || "";
+    const most_controversial = url.searchParams.get("most_controversial") || "";
 
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string };
 
@@ -95,7 +97,12 @@ export async function GET(req: NextRequest) {
       skip: offset,
       take: pageSize,
     });
-
+    if (most_value){
+      blogPosts.sort((a, b) => (a.upvotes - a.downvotes) - (b.upvotes - b.downvotes));
+    }
+    if (most_controversial){
+      blogPosts.sort((a, b) => (a.upvotes + a.downvotes)/Math.max(1, Math.abs(a.upvotes - a.downvotes)) - (b.upvotes + b.downvotes)/Math.max(1, Math.abs(b.upvotes - b.downvotes)));
+    }
     const totalBlogPosts = intersectedBlogPostIds.length;
     const totalPages = Math.ceil(totalBlogPosts / pageSize);
 

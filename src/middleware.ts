@@ -6,7 +6,7 @@ import { getNewAccessToken, updateCookies } from "./app/api/auth/refresh/route";
 // note: cannot use getPayload from utils/payload because it uses jsonwebtoken
 
 export async function middleware(req: NextRequest) {
-  console.log("REACHED MIDDLEWARE");
+  // console.log("REACHED MIDDLEWARE");
 
   // OLD: authorization header setup
   // const authHeader = req.headers.get("Authorization");
@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest) {
   // console.log("THIS IS THE TOKEN: " + token);
 
   const accessToken = req.cookies.get("accessToken")?.value;
-  console.log("THIS IS THE TOKEN: ", accessToken);
+  // console.log("THIS IS THE TOKEN: ", accessToken);
   try {
     const { payload } = await jwtVerify(accessToken as string, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
     const res = NextResponse.next();

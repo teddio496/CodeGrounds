@@ -14,11 +14,8 @@ export async function GET(req: NextRequest) {
 
     const offset = (page - 1) * pageSize;
 
-    const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string; [key: string]: any; };
-
     const templates = await prisma.template.findMany({
       where: {
-        owner: username,
         AND: [
           { title: { contains: title } },
           { explanation: { contains: explanation } },
@@ -27,6 +24,19 @@ export async function GET(req: NextRequest) {
       },
       include: {
         tags: true,
+        blogs: {
+          where: { hidden: false },
+          select: { 
+            b_id: true,
+            title: true,
+            description: true,
+            content: false,
+            authorName: true,
+            createdAt: true,
+            upvotes: true,
+            downvotes: true
+          }
+        }
       },
       skip: offset,
       take: pageSize,
@@ -34,6 +44,7 @@ export async function GET(req: NextRequest) {
     console.log(tags)
     const templatesByTag = tags.length == 0 ? templates :  await prisma.template.findMany({
       where: {
+        public: true,
         tags: {
           some: {
             tag: {
@@ -42,9 +53,6 @@ export async function GET(req: NextRequest) {
           },
         },
       },
-      include: {
-        tags: true
-      }
     });
     console.log(templates)
     console.log(templatesByTag)
@@ -57,7 +65,7 @@ export async function GET(req: NextRequest) {
       }
       return false
     })
-    
+
     // Get number of all matching templates
     const totalTemplates = await prisma.template.count({
       where: {

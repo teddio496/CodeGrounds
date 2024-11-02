@@ -12,7 +12,8 @@ export async function POST(req: Request) {
         password: hashedPass,
       },
     });
-    return Response.json({ user }, { status: 201 });
+    const { password: _, ...userWithoutPassword } = user; 
+    return Response.json({ userWithoutPassword }, { status: 201 });
   }
   catch (e) {
     console.error(e);

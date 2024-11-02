@@ -43,28 +43,23 @@ export async function GET(req: NextRequest) {
       },
       select: { b_id: true },
     });
-
-    console.log(blogPostsByFields)
-
     const blogPostIdsByFields = blogPostsByFields.map((post) => post.b_id);
-    console.log(blogPostIdsByFields)
+    
     const blogPostsByTemplates = await prisma.blogPost.findMany({
       where: {
         templates: {
           some: {
             OR: codeTemplates.map((template) => ({
-              title: { contains: template },
+              t_id: parseInt(template, 10),
             })),
           },
         },
       },
       select: { b_id: true },
     });
-
+    console.log(codeTemplates)
     console.log(blogPostsByTemplates)
-
     const blogPostIdsByTemplates = codeTemplates.length != 0 ? blogPostsByTemplates.map((post) => post.b_id) : blogPostIdsByFields;
-    console.log(blogPostIdsByTemplates)
 
     const blogPostsByTags = await prisma.blogPost.findMany({
       where: {
@@ -78,14 +73,13 @@ export async function GET(req: NextRequest) {
       },
       select: { b_id: true },
     });
-    console.log(blogPostsByTags)
+
+
     const blogPostIdsByTags = tags.length != 0 ? blogPostsByTags.map((post) => post.b_id) : blogPostIdsByFields;
-    console.log(blogPostIdsByTags)
     const intersectedBlogPostIds = blogPostIdsByFields
       .filter((id) => blogPostIdsByTemplates.includes(id))
       .filter((id) => blogPostIdsByTags.includes(id));
 
-    console.log(intersectedBlogPostIds)
     const blogPosts = await prisma.blogPost.findMany({
       where: {
         b_id: { in: intersectedBlogPostIds },

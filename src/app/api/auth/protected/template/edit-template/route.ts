@@ -2,7 +2,7 @@ import { prisma } from "@/utils/prismaClient";
 
 export async function PUT(req: Request) {
   try {
-    const { t_id, code, explanation, tags } = await req.json();
+    const { t_id, title, code, explanation, tags, isPublic } = await req.json();
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
 
     // must make sure we are finding the right template selected (t_id)
@@ -13,11 +13,13 @@ export async function PUT(req: Request) {
         owner: username,
       },
       data: {
+        title,
         code,
         explanation,
         tags: {
           deleteMany: {}, // delete all tags
-        }
+        },
+        public: isPublic
       },
     });
 
