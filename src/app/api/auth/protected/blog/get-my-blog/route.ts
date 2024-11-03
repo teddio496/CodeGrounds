@@ -97,11 +97,14 @@ export async function GET(req: NextRequest) {
       skip: offset,
       take: pageSize,
     });
+    if (most_value && most_controversial){
+      return new Response(JSON.stringify({ error: "You cannot sort by two different criterion." }), { status: 400 });
+  }
     if (most_value){
-      blogPosts.sort((a, b) => (a.upvotes - a.downvotes) - (b.upvotes - b.downvotes));
+      blogPosts.sort((a: any, b: any) =>  (b.upvotes - b.downvotes)- (a.upvotes - a.downvotes));
     }
     if (most_controversial){
-      blogPosts.sort((a, b) => (a.upvotes + a.downvotes)/Math.max(1, Math.abs(a.upvotes - a.downvotes)) - (b.upvotes + b.downvotes)/Math.max(1, Math.abs(b.upvotes - b.downvotes)));
+      blogPosts.sort((a: any, b: any) =>  (b.upvotes + b.downvotes)/Math.max(1, Math.abs(b.upvotes - b.downvotes)) - (a.upvotes + a.downvotes)/Math.max(1, Math.abs(a.upvotes - a.downvotes)));
     }
     const totalBlogPosts = intersectedBlogPostIds.length;
     const totalPages = Math.ceil(totalBlogPosts / pageSize);
