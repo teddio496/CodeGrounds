@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     // remove the password from the response
     const { password: _, ...userWithoutPassword } = user;
 
-    return Response.json({ userWithoutPassword }, { status: 201 });
+    return Response.json({ user: userWithoutPassword }, { status: 201 });
   }
   catch (e) {
     console.error(e);

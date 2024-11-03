@@ -6,7 +6,7 @@ import { getNewAccessToken, updateCookies } from "./app/api/auth/refresh/route";
 // note: cannot use getPayload from utils/payload because it uses jsonwebtoken
 
 export async function middleware(req: NextRequest) {
-  // console.log("REACHED MIDDLEWARE");
+  console.log("REACHED MIDDLEWARE");
 
   // OLD: authorization header setup
   // const authHeader = req.headers.get("Authorization");
@@ -19,14 +19,15 @@ export async function middleware(req: NextRequest) {
   // console.log("THIS IS THE TOKEN: " + token);
 
   const accessToken = req.cookies.get("accessToken")?.value;
-  // console.log("THIS IS THE TOKEN: ", accessToken);
+  console.log("THIS IS THE TOKEN: ", accessToken);
   try {
     const { payload } = await jwtVerify(accessToken as string, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
     const res = NextResponse.next();
     res.headers.set("payload", JSON.stringify(payload));
     return res;
   }
-  catch (e) {
+  catch (e: any) {
+    console.log(e);
     if (e instanceof JWTExpired) {
       console.log("TOKEN WAS EXPIRED, REFRESHING...");
       let refreshToken = req.cookies.get("refreshToken")?.value;
@@ -41,9 +42,9 @@ export async function middleware(req: NextRequest) {
       // console.log(payload)
       res.headers.set("payload", JSON.stringify(payload));
       return res;
-    }
-    else {
-      console.error(e);
+    } else if (e.code === "ERR_JWS_INVALID" || e.name === "JWSInvalid") {
+      return NextResponse.json({ error: "invalid jwt format" }, { status: 400 });
+    } else {
       return NextResponse.json({ error: "something went wrong in middleware" }, { status: 500 });
     }
   }
