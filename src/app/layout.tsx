@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
-import "./globals.css";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Scriptorium",
-  description: "Efficient code execution platform.",
-};
+import React from "react";
+import "./globals.css";
+import { SidebarDemo } from "@/src/app/components/ui/SidebarDemo";
+import { Toaster } from "@/src/app/components/ui/toaster";
+import { ThemeProvider } from "@/src/context/ThemeContext";
 
 export default function RootLayout({
   children,
@@ -13,8 +13,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        {children}
+      <body className="bg-[#333333]">
+      <ThemeProvider>
+        <SidebarDemo>
+          {children}
+        <Toaster />
+        </SidebarDemo>
+      </ThemeProvider>
       </body>
     </html>
   );

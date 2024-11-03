@@ -2,7 +2,6 @@ import { prisma } from "@/utils/prismaClient";
 import { Prisma } from "@prisma/client"; // import the Prisma namespace
 
 export async function POST(req: Request) {
-  console.log("reached save template");
   try {
     // extract data from request body
     const { title, code, explanation, tags, language } = await req.json();

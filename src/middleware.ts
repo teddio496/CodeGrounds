@@ -17,7 +17,6 @@ export async function middleware(req: NextRequest) {
   // }
   // const token = authHeader.split(" ")[1];
   // console.log("THIS IS THE TOKEN: " + token);
-
   const accessToken = req.cookies.get("accessToken")?.value;
   // console.log("THIS IS THE TOKEN: ", accessToken);
   try {
@@ -26,11 +25,15 @@ export async function middleware(req: NextRequest) {
     res.headers.set("payload", JSON.stringify(payload));
     return res;
   }
-  catch (e) {
+  catch (e: any) {
+    console.log(e);
     if (e instanceof JWTExpired) {
       console.log("TOKEN WAS EXPIRED, REFRESHING...");
       let refreshToken = req.cookies.get("refreshToken")?.value;
       const newAccessToken = await getNewAccessToken(refreshToken as string);
+      if (newAccessToken === "REFRESH TOKEN EXPIRED") {
+        return NextResponse.redirect(new URL("/login", req.url)); // doesn't work... NEXT JS DEVS PLS FIX
+      }
       if (!newAccessToken) {
         return NextResponse.json({ error: "refresh token failed" }, { status: 500 });
       }
@@ -41,9 +44,9 @@ export async function middleware(req: NextRequest) {
       // console.log(payload)
       res.headers.set("payload", JSON.stringify(payload));
       return res;
-    }
-    else {
-      console.error(e);
+    } else if (e.code === "ERR_JWS_INVALID" || e.name === "JWSInvalid") {
+      return NextResponse.json({ error: "invalid jwt format" }, { status: 400 });
+    } else {
       return NextResponse.json({ error: "something went wrong in middleware" }, { status: 500 });
     }
   }

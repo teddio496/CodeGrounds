@@ -22,7 +22,7 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
-      console.log("RESPONSE STATUS: " + response.status);
+      //console.log("RESPONSE STATUS: " + response.status);
       if (!response.ok) {
         setError(data.error || "An error occurred during login.");
         return;

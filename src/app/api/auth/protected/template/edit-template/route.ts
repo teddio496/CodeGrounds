@@ -4,9 +4,9 @@ import { Prisma } from "@prisma/client";
 export async function PUT(req: Request) {
   try {
     // extract template data from request body
-    const { t_id, title, code, explanation, tags, isPublic } = await req.json();
+    const { t_id, title, code, explanation, tags, language, isPublic } = await req.json();
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
-
+    console.log(code);
     // update the template ensuring it belongs to the specified username
     const updatedTemplate = await prisma.template.update({
       where: {
@@ -18,6 +18,7 @@ export async function PUT(req: Request) {
         code,
         explanation,
         public: isPublic,
+        language,
         tags: {
           deleteMany: {}, // delete all existing tags
         },
@@ -51,5 +52,6 @@ export async function PUT(req: Request) {
     } else {
       return Response.json({ error: "failed to update template" }, { status: 500 }); // internal server error
     }
+    // note: portions of the above code were provided by ChatGPT
   }
 }

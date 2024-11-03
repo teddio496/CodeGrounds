@@ -21,6 +21,9 @@ export async function DELETE(req: Request) {
 
 
         await prisma.blogPostTag.deleteMany({ where: { b_id } });
+        await prisma.comment.deleteMany({where: { postId:b_id }});
+        await prisma.upDownVotes.deleteMany({where: { b_id }});
+        await prisma.reportedBlog.deleteMany({where: { b_id }});
         await prisma.blogPost.delete({ where: { b_id } });
         return Response.json({ message: "successfully deleted the blog post", b_id }, { status: 200 });
 

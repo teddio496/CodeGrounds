@@ -3,19 +3,15 @@ import { Prisma } from "@prisma/client"; // import the Prisma namespace
 
 export async function POST(req: Request) {
   try {
-    // extract t_id and title from request body
     const { t_id, title } = await req.json();
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
 
-    // find the template being forked
     const forkingFrom = await prisma.template.findUnique({ where: { t_id } });
 
-    // check if the template exists
     if (!forkingFrom) {
       return Response.json({ error: "template not found." }, { status: 404 }); // not found
     }
 
-    // retrieve titles of templates owned by the user
     const yourTitles = await prisma.template.findMany({
       where: {
         owner: username
@@ -24,26 +20,21 @@ export async function POST(req: Request) {
     });
 
     const onlyTitles = yourTitles.map((template) => template.title);
-
-    // check for title conflicts
+    let new_title = ''
     if (onlyTitles.includes(title) || (!title && onlyTitles.includes(forkingFrom.title))) {
-      return Response.json(
-        { error: "please change the title, you already have a template of this title." },
-        { status: 400 } // bad request
-      );
+      new_title = title + "(forked)"
     }
 
-    // prepare data for new forked template
-    const { t_id: _, ...withoutTid } = forkingFrom;
     const fork = await prisma.template.create({
       data: {
-        ...withoutTid,
-        title: title ? title : forkingFrom.title,
+        language: forkingFrom.language,
+        code: forkingFrom.code,
+        title: new_title ? new_title : (title ? title : forkingFrom.title),
         owner: username,
+        explanation: "",
         forkedFrom: t_id,
       }
     });
-
     return Response.json({ fork }, { status: 201 });
   }
   catch (e) {
@@ -61,7 +52,7 @@ export async function POST(req: Request) {
         // other Prisma known request errors
         return Response.json(
           { error: e.message },
-          { status: 400 } // bad request for other validation issues
+          { status: 401 } // bad request for other validation issues
         );
       }
     } else if (e instanceof Prisma.PrismaClientValidationError) {
