@@ -33,21 +33,23 @@ model User {
 }
 
 model Template {
-  t_id        Int     @id @default(autoincrement())
+  t_id        Int      @id @default(autoincrement())
   title       String
   owner       String
-  code        String  @default("")
-  language    String  @default("Python")
-  explanation String  @default("")
-  public      Boolean @default(false)
+  code        String   @default("")
+  language    String   @default("Python")
+  explanation String   @default("")
+  public      Boolean  @default(false)
+  createdAt   DateTime @default(now())
   forkedFrom  Int?
 
   tags     TemplateTag[]
   blogs    BlogPost[]
-  parent   Template?       @relation("TemplateToTemplate", fields: [forkedFrom], references: [t_id])
-  children Template[]      @relation("TemplateToTemplate")
+  parent   Template?     @relation("TemplateToTemplate", fields: [forkedFrom], references: [t_id])
+  children Template[]    @relation("TemplateToTemplate")
 
-  user     User            @relation(fields: [owner], references: [username])
+  user User @relation(fields: [owner], references: [username])
+
   @@unique([owner, title])
 }
 
@@ -71,7 +73,7 @@ model BlogPost {
   createdAt   DateTime @default(now())
   hidden      Boolean  @default(false)
 
-  author      User     @relation(fields: [authorName], references: [username])
+  author User @relation(fields: [authorName], references: [username])
 
   templates    Template[]
   comments     Comment[]
@@ -106,6 +108,7 @@ model Comment {
   postId          Int
   parentId        Int?
   authorName      String
+  hidden          Boolean           @default(false)
   upvotes         Int               @default(0)
   downvotes       Int               @default(0)
   createdAt       DateTime          @default(now())

@@ -9,26 +9,26 @@ export async function GET(req: NextRequest) {
     const content = url.searchParams.get("content") || "";
     const description = url.searchParams.get("description") || "";
     const tags = url.searchParams.getAll("tags");
-    const codeTemplates = url.searchParams.getAll("codeTemplates");
+    const template = url.searchParams.getAll("template");
     const page = parseInt(url.searchParams.get("page") || "1", 10);
     const pageSize = parseInt(url.searchParams.get("pageSize") || "10", 10);
-    const offset = (page - 1) * pageSize;
     const most_value = url.searchParams.get("most_value") || "";
     const most_controversial = url.searchParams.get("most_controversial") || "";
+    const sort_by_date = url.searchParams.get("sort_by_date") || false;
+    const offset = (page - 1) * pageSize;
+    const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string; };
 
-    const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string };
+    if (b_id != -1) {
+      const blogPost = await prisma.blogPost.findUnique({
+        where: { b_id },
+        include: { tags: true, templates: true },
+      });
 
-    if (b_id != -1){
-        const blogPost = await prisma.blogPost.findUnique({
-            where: { b_id },
-            include: { tags: true, templates: true },
-        });
+      if (!blogPost) {
+        return new Response(JSON.stringify({ error: "Blog post not found" }), { status: 404 });
+      }
 
-        if (!blogPost) {
-            return new Response(JSON.stringify({ error: "Blog post not found" }), { status: 404 });
-        }
-
-        return new Response(JSON.stringify(blogPost), { status: 200 });
+      return new Response(JSON.stringify(blogPost), { status: 200 });
 
     }
 
@@ -38,33 +38,28 @@ export async function GET(req: NextRequest) {
           { title: { contains: title } },
           { content: { contains: content } },
           { description: { contains: description } },
-          { authorName : username }
+          { authorName: username }
         ],
       },
       select: { b_id: true },
     });
-
-    console.log(blogPostsByFields)
-
     const blogPostIdsByFields = blogPostsByFields.map((post) => post.b_id);
-    console.log(blogPostIdsByFields)
-    const blogPostsByTemplates = await prisma.blogPost.findMany({
+
+    const blogPostsByTemplates = template[0] === '' ? [] : await prisma.blogPost.findMany({
       where: {
         templates: {
           some: {
-            OR: codeTemplates.map((template) => ({
-              title: { contains: template },
-            })),
+            OR:
+              template.map((template) => (
+                { t_id: parseInt(template, 10) }
+              )),
           },
         },
       },
       select: { b_id: true },
     });
-
-    console.log(blogPostsByTemplates)
-
-    const blogPostIdsByTemplates = codeTemplates.length != 0 ? blogPostsByTemplates.map((post) => post.b_id) : blogPostIdsByFields;
-    console.log(blogPostIdsByTemplates)
+    // console.log(template);
+    const blogPostIdsByTemplates = template.length !== 0 ? blogPostsByTemplates.map((post) => post.b_id) : blogPostIdsByFields;
 
     const blogPostsByTags = await prisma.blogPost.findMany({
       where: {
@@ -78,14 +73,12 @@ export async function GET(req: NextRequest) {
       },
       select: { b_id: true },
     });
-    console.log(blogPostsByTags)
-    const blogPostIdsByTags = tags.length != 0 ? blogPostsByTags.map((post) => post.b_id) : blogPostIdsByFields;
-    console.log(blogPostIdsByTags)
-    const intersectedBlogPostIds = blogPostIdsByFields
-      .filter((id) => blogPostIdsByTemplates.includes(id))
-      .filter((id) => blogPostIdsByTags.includes(id));
 
-    console.log(intersectedBlogPostIds)
+    const blogPostIdsByTags = tags.length !== 0 ? blogPostsByTags.map((post: any) => post.b_id) : blogPostIdsByFields;
+    const intersectedBlogPostIds = blogPostIdsByFields
+      .filter((id: any) => blogPostIdsByTemplates.includes(id))
+      .filter((id: any) => blogPostIdsByTags.includes(id));
+
     const blogPosts = await prisma.blogPost.findMany({
       where: {
         b_id: { in: intersectedBlogPostIds },
@@ -93,19 +86,26 @@ export async function GET(req: NextRequest) {
       include: {
         tags: true,
         templates: true,
+        author: true
       },
       skip: offset,
       take: pageSize,
     });
-    if (most_value){
-      blogPosts.sort((a, b) => (a.upvotes - a.downvotes) - (b.upvotes - b.downvotes));
+    if (most_value === 'true' && most_controversial === 'true') {
+      return new Response(JSON.stringify({ error: "You cannot sort by two different criterion." }), { status: 400 });
     }
-    if (most_controversial){
-      blogPosts.sort((a, b) => (a.upvotes + a.downvotes)/Math.max(1, Math.abs(a.upvotes - a.downvotes)) - (b.upvotes + b.downvotes)/Math.max(1, Math.abs(b.upvotes - b.downvotes)));
+    if (most_value === 'true') {
+      blogPosts.sort((a: any, b: any) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
     }
+    if (most_controversial === 'true') {
+      blogPosts.sort((a: any, b: any) => (b.upvotes + b.downvotes) / Math.max(1, Math.abs(b.upvotes - b.downvotes)) - (a.upvotes + a.downvotes) / Math.max(1, Math.abs(a.upvotes - a.downvotes)));
+    }
+    if (sort_by_date) {
+      blogPosts.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
     const totalBlogPosts = intersectedBlogPostIds.length;
     const totalPages = Math.ceil(totalBlogPosts / pageSize);
-
     return NextResponse.json({ blogPosts, totalBlogPosts, totalPages, currentPage: page }, { status: 200 });
   } catch (error) {
     console.error("Error fetching blog posts:", error);

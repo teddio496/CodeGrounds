@@ -11,7 +11,7 @@ export async function PUT(req: Request) {
             return new Response(JSON.stringify({ error: "You don't have permissions to view reports" }), { status: 401 });
         }
 
-        const check = await prisma.blogPost.findUnique({where: { b_id }});
+        const check = await prisma.blogPost.findUnique({where: { b_id: ~~b_id }});
         if (!check){
             return new Response(JSON.stringify({ error: "This blog is non-existent" }), { status: 400 });
         }

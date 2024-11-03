@@ -1,5 +1,6 @@
 import { prisma } from "@/utils/prismaClient";
 import { Prisma } from "@prisma/client";
+import { stat } from "fs";
 
 export async function DELETE(req: Request) {
   try {
@@ -7,15 +8,40 @@ export async function DELETE(req: Request) {
     const { t_id } = await req.json();
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
 
+    const template = await prisma.template.findUnique({
+      where: { t_id },
+      include: {
+        children: true,
+      }
+    });
+
+    if (template?.owner !== username) {
+      return Response.json({ error: "not allowed to delete template that is not yours" }, { status: 403 });
+    }
+
+    const thing = await prisma.template.updateMany({
+      where: {
+        t_id: {
+          in: template?.children.map((child) => child.t_id)
+        }
+      },
+      data: {
+        forkedFrom: null
+      }
+    });
+
+    await prisma.templateTag.deleteMany({
+      where: { t_id }
+    });
+
     // attempt to delete the specified template ensuring it belongs to the specified username
-    const template = await prisma.template.delete({
+    const deleted = await prisma.template.delete({
       where: {
         t_id,
-        owner: username,
       },
     });
 
-    return Response.json({ message: "deleted code template " + JSON.stringify(template) }, { status: 200 });
+    return Response.json({ message: "deleted code template " + JSON.stringify(deleted) }, { status: 200 });
   }
   catch (e) {
     console.error(e);
@@ -30,5 +56,6 @@ export async function DELETE(req: Request) {
     } else {
       return Response.json({ error: "failed to delete template" }, { status: 500 }); // internal server error
     }
+    // note: portions of the above code were provided by ChatGPT
   }
 }
