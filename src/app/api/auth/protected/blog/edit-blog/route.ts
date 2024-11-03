@@ -34,7 +34,7 @@ export async function PUT(req: Request) {
             },
         });
 
-        return new Response(JSON.stringify({ message: "successfully updated the blog" }), { status: 200 });
+        return new Response(JSON.stringify({ message: "successfully updated the blog" , updatedBlogPost }), { status: 200 });
 
     } catch (e) {
         console.error(e);

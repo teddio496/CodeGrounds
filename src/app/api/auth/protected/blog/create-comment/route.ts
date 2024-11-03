@@ -14,7 +14,7 @@ export async function POST(req: Request) {
             },
         });
         
-        return new Response(JSON.stringify({ message: "successfully added a comment" }), { status: 201 });
+        return new Response(JSON.stringify({ message: "successfully added a comment", c_id: newComment.c_id }), { status: 201 });
     } catch (e) {
         console.error(e);
         return new Response(JSON.stringify({ error: "failed to create new comment" }), { status: 500 });
