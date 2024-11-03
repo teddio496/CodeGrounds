@@ -75,10 +75,10 @@ export async function GET(req: NextRequest) {
     });
 
 
-    const blogPostIdsByTags = tags.length != 0 ? blogPostsByTags.map((post) => post.b_id) : blogPostIdsByFields;
+    const blogPostIdsByTags = tags.length != 0 ? blogPostsByTags.map((post: any) => post.b_id) : blogPostIdsByFields;
     const intersectedBlogPostIds = blogPostIdsByFields
-      .filter((id) => blogPostIdsByTemplates.includes(id))
-      .filter((id) => blogPostIdsByTags.includes(id));
+      .filter((id: any) => blogPostIdsByTemplates.includes(id))
+      .filter((id: any) => blogPostIdsByTags.includes(id));
 
     const blogPosts = await prisma.blogPost.findMany({
       where: {
@@ -91,6 +91,13 @@ export async function GET(req: NextRequest) {
       skip: offset,
       take: pageSize,
     });
+
+    if (most_value){
+      blogPosts.sort((a: any, b: any) => (a.upvotes - a.downvotes) - (b.upvotes - b.downvotes));
+    }
+    if (most_controversial){
+      blogPosts.sort((a: any, b: any) => (a.upvotes + a.downvotes)/Math.max(1, Math.abs(a.upvotes - a.downvotes)) - (b.upvotes + b.downvotes)/Math.max(1, Math.abs(b.upvotes - b.downvotes)));
+    }
 
     const totalBlogPosts = intersectedBlogPostIds.length;
     const totalPages = Math.ceil(totalBlogPosts / pageSize);
