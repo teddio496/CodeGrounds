@@ -20,7 +20,7 @@ export async function POST(req: Request) {
             },
         });
 
-        return new Response(JSON.stringify({ message: "successfully added a blog" }), { status: 201 });
+        return new Response(JSON.stringify({ message: "successfully added a blog" , newBlogPost}), { status: 201 });
 
     } catch (e) {
         console.error(e);

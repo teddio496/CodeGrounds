@@ -22,7 +22,7 @@ export async function DELETE(req: Request) {
 
         await prisma.blogPostTag.deleteMany({ where: { b_id } });
         await prisma.blogPost.delete({ where: { b_id } });
-        return Response.json({ message: "successfully deleted the blog post" }, { status: 200 });
+        return Response.json({ message: "successfully deleted the blog post", b_id }, { status: 200 });
 
     } catch (e) {
         console.error(e);
