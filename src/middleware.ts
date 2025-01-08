@@ -6,7 +6,7 @@ import { getNewAccessToken, updateCookies } from "./app/api/auth/refresh/route";
 // note: cannot use getPayload from utils/payload because it uses jsonwebtoken
 
 export async function middleware(req: NextRequest) {
-  console.log("REACHED MIDDLEWARE");
+  // console.log("REACHED MIDDLEWARE");
 
   // OLD: authorization header setup
   // const authHeader = req.headers.get("Authorization");
@@ -17,9 +17,8 @@ export async function middleware(req: NextRequest) {
   // }
   // const token = authHeader.split(" ")[1];
   // console.log("THIS IS THE TOKEN: " + token);
-
   const accessToken = req.cookies.get("accessToken")?.value;
-  console.log("THIS IS THE TOKEN: ", accessToken);
+  // console.log("THIS IS THE TOKEN: ", accessToken);
   try {
     const { payload } = await jwtVerify(accessToken as string, new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET));
     const res = NextResponse.next();
@@ -32,6 +31,9 @@ export async function middleware(req: NextRequest) {
       console.log("TOKEN WAS EXPIRED, REFRESHING...");
       let refreshToken = req.cookies.get("refreshToken")?.value;
       const newAccessToken = await getNewAccessToken(refreshToken as string);
+      if (newAccessToken === "REFRESH TOKEN EXPIRED") {
+        return NextResponse.redirect(new URL("/login", req.url)); // doesn't work... NEXT JS DEVS PLS FIX
+      }
       if (!newAccessToken) {
         return NextResponse.json({ error: "refresh token failed" }, { status: 500 });
       }

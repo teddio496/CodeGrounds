@@ -12,7 +12,14 @@ export async function GET(req: NextRequest) {
     const tags = url.searchParams.getAll("tags") || [];
     const page = parseInt(url.searchParams.get("page") || "1", 10);
     const pageSize = parseInt(url.searchParams.get("pageSize") || "10", 10);
+    const sort_by_date = url.searchParams.get("sort_by_date") || false;
     const offset = (page - 1) * pageSize;
+    const t_id =  parseInt(url.searchParams.get("t_id") || "-1", 10);
+
+    if (t_id >= 0){
+      const template = await prisma.template.findUnique({ where: { t_id }, include: {tags: true, user: true,} });
+      return NextResponse.json( template, { status: 200 } );
+    }
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
 
     const templates = await prisma.template.findMany({
@@ -37,13 +44,12 @@ export async function GET(req: NextRequest) {
             upvotes: true,
             downvotes: true
           }
-        }
+        },
+        user: true
       },
       skip: offset,
       take: pageSize,
     });
-
-    console.log("TAGS: ", tags);
 
     const templatesByTag = tags.length == 0 ? templates : await prisma.template.findMany({
       where: {
@@ -60,9 +66,6 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    console.log("TEMPLATES: ", templates);
-    console.log("TEMPLATESBYTAG: ", templatesByTag);
-
     const interesectedTemplates = templates.filter((template) => {
       for (const tagTemplate of templatesByTag) {
         if (tagTemplate.t_id == template.t_id) {
@@ -71,8 +74,6 @@ export async function GET(req: NextRequest) {
       }
       return false;
     });
-
-    console.log("INTERSECTED TEMPLATES: ", interesectedTemplates);
 
     // Get number of all matching templates
     const totalTemplates = await prisma.template.count({
@@ -92,7 +93,9 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    console.log("TOTAL TEMPLATES: ", totalTemplates);
+    if (sort_by_date) {
+      interesectedTemplates.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
 
     // Calculate total pages
     const totalPages = Math.ceil(totalTemplates / pageSize);

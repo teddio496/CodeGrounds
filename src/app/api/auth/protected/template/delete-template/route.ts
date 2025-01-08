@@ -34,8 +34,6 @@ export async function DELETE(req: Request) {
       where: { t_id }
     });
 
-    console.log(t_id, username);
-
     // attempt to delete the specified template ensuring it belongs to the specified username
     const deleted = await prisma.template.delete({
       where: {

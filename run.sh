@@ -1,1 +1,2 @@
-npm run dev
+#!/bin/bash
+npm start

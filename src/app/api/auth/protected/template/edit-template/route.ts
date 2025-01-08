@@ -6,7 +6,7 @@ export async function PUT(req: Request) {
     // extract template data from request body
     const { t_id, title, code, explanation, tags, language, isPublic } = await req.json();
     const { username } = JSON.parse(req.headers.get("payload") as string) as { username: string;[key: string]: any; };
-
+    console.log(code);
     // update the template ensuring it belongs to the specified username
     const updatedTemplate = await prisma.template.update({
       where: {
